@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('posts', ({ data }) => !data.draft);
+const sortedPosts = allPosts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+
+<Base title="Studio" description="WANG Bingqi 建筑作品与研究笔记">
+  <section class="post-list">
+    {sortedPosts.length === 0 && (
+      <p style="color: var(--text-dim);">还没有内容。去 <a href="/admin/">管理后台</a> 写第一篇文章吧。</p>
+    )}
+
+    {sortedPosts.map((post) => (
+      <article class="post-card">
+        <h2><a href={`/posts/${post.slug}/`}>{post.data.title}</a></h2>
+        <div class="post-meta">
+          <time datetime={post.data.date.toISOString()}>
+            {post.data.date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </time>
+          <span class="category">{post.data.category}</span>
+        </div>
+        {post.data.description && <p>{post.data.description}</p>}
+        {post.data.tags && post.data.tags.length > 0 && (
+          <div class="tags">
+            {post.data.tags.map(tag => <span class="tag">{tag}</span>)}
+          </div>
+        )}
+      </article>
+    ))}
+  </section>
+</Base>

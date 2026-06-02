@@ -1,0 +1,38 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  const categories = [...new Set(posts.map(p => p.data.category))];
+  return categories.map((cat) => ({
+    params: { category: cat },
+    props: { category: cat, posts: posts.filter(p => p.data.category === cat) },
+  }));
+}
+
+const { category, posts: filteredPosts } = Astro.props;
+const categoryNames = { project: '项目', research: '研究', process: '过程', note: '笔记' };
+const catName = categoryNames[category] || category;
+---
+
+<Base title={catName} description={`${catName}分类的文章`}>
+  <section>
+    <h2 style="font-size: 1.2rem; font-weight: 500; margin-bottom: 2rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em;">
+      {catName}
+    </h2>
+    <div class="post-list">
+      {filteredPosts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime()).map((post) => (
+        <article class="post-card">
+          <h2><a href={`/posts/${post.slug}/`}>{post.data.title}</a></h2>
+          <div class="post-meta">
+            <time datetime={post.data.date.toISOString()}>
+              {post.data.date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
+            </time>
+          </div>
+          {post.data.description && <p>{post.data.description}</p>}
+        </article>
+      ))}
+    </div>
+  </section>
+</Base>

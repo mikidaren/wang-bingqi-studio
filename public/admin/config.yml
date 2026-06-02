@@ -1,0 +1,73 @@
+# Decap CMS Configuration
+# 部署前需要修改：
+#   1. repo: 改为你的 GitHub 用户名/仓库名
+#   2. 在 Cloudflare Dashboard 设置 GITHUB_CLIENT_ID 和 GITHUB_CLIENT_SECRET
+
+backend:
+  name: github
+  repo: mikidaren/wang-bingqi-studio
+  branch: main
+  base_url: https://studio.wangbingqi.eu.org
+  auth_endpoint: auth
+
+publish_mode: editorial_workflow
+media_folder: public/assets/uploads
+public_folder: /assets/uploads
+
+collections:
+  - name: posts
+    label: 文章
+    label_singular: 文章
+    folder: src/content/posts
+    create: true
+    delete: true
+    path: '{{slug}}/index'
+    media_folder: ''
+    public_folder: ''
+    slug: '{{year}}-{{month}}-{{slug}}'
+    fields:
+      - label: 标题
+        name: title
+        widget: string
+      - label: 描述
+        name: description
+        widget: text
+        required: false
+      - label: 发布日期
+        name: date
+        widget: datetime
+        format: YYYY-MM-DD
+        date_format: YYYY-MM-DD
+        time_format: false
+      - label: 更新日期
+        name: updated
+        widget: datetime
+        format: YYYY-MM-DD
+        date_format: YYYY-MM-DD
+        time_format: false
+        required: false
+      - label: 封面图
+        name: cover
+        widget: image
+        required: false
+      - label: 分类
+        name: category
+        widget: select
+        options:
+          - { label: 项目, value: project }
+          - { label: 研究, value: research }
+          - { label: 过程, value: process }
+          - { label: 笔记, value: note }
+        default: note
+      - label: 标签
+        name: tags
+        widget: list
+        required: false
+      - label: 草稿
+        name: draft
+        widget: boolean
+        default: false
+        required: false
+      - label: 正文
+        name: body
+        widget: markdown
