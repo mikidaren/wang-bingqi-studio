@@ -1,0 +1,50 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+---
+
+<Base title={post.data.title} description={post.data.description}>
+  <article>
+    <header class="post-header">
+      <div class="post-meta">
+        <time datetime={post.data.date.toISOString()}>
+          {post.data.date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </time>
+        {post.data.updated && (
+          <span style="color: var(--text-muted);">
+            · 更新于 {post.data.updated.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </span>
+        )}
+        <span class="category">{post.data.category}</span>
+      </div>
+      <h1>{post.data.title}</h1>
+      {post.data.description && (
+        <p style="color: var(--text-dim); margin-top: 0.5rem;">{post.data.description}</p>
+      )}
+      {post.data.tags && post.data.tags.length > 0 && (
+        <div class="tags" style="margin-top: 0.75rem;">
+          {post.data.tags.map(tag => <span class="tag">{tag}</span>)}
+        </div>
+      )}
+    </header>
+
+    {post.data.cover && (
+      <img src={post.data.cover} alt={post.data.title} class="post-cover" />
+    )}
+
+    <div class="post-content">
+      <Content />
+    </div>
+  </article>
+</Base>
