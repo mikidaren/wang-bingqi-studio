@@ -7,7 +7,7 @@ backend:
   name: github
   repo: mikidaren/wang-bingqi-studio
   branch: main
-  base_url: https://studio.wangbingqi.eu.org
+  base_url: https://studio.miki2022.eu.org
   auth_endpoint: auth
 
 publish_mode: editorial_workflow
