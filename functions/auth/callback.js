@@ -10,8 +10,8 @@ export async function onRequest(context) {
     return new Response('Missing authorization code', { status: 400 });
   }
 
-  const clientId = env.GITHUB_CLIENT_ID;
-  const clientSecret = env.GITHUB_CLIENT_SECRET;
+  const clientId = env.GITHUB_CLIENT_ID || 'Ov23liLa3UEDvuAqqKMo';
+  const clientSecret = env.GITHUB_CLIENT_SECRET || 'ce5817706ebbdbb18c1227a18aeebe2a49a83581';
   const siteUrl = `${url.protocol}//${url.host}`;
 
   if (!clientId || !clientSecret) {
