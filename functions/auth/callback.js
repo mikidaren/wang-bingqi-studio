@@ -10,16 +10,9 @@ export async function onRequest(context) {
     return new Response('Missing authorization code', { status: 400 });
   }
 
-  const clientId = env.GITHUB_CLIENT_ID || 'Ov23liLa3UEDvuAqqKMo';
-  const clientSecret = env.GITHUB_CLIENT_SECRET || 'REDACTED-USE-ENV-GITHUB_CLIENT_SECRET';
+  const clientId = 'Ov23liLa3UEDvuAqqKMo';
+  const clientSecret = 'REDACTED-USE-ENV-GITHUB_CLIENT_SECRET';
   const siteUrl = `${url.protocol}//${url.host}`;
-
-  if (!clientId || !clientSecret) {
-    return new Response(
-      'GITHUB_CLIENT_ID 或 GITHUB_CLIENT_SECRET 未配置。请在 Cloudflare Dashboard 中添加。',
-      { status: 500 }
-    );
-  }
 
   try {
     // 交换 access token
