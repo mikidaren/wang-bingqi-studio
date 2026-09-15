@@ -1,0 +1,197 @@
+---
+import Base from '../../layouts/Base.astro';
+
+/**
+ * Grasshopper 定义库
+ *
+ * 想增删条目：改下面这个数组即可。
+ * 文件放在 public/grasshopper/ 下，文件名用纯 ASCII（避免 URL 编码问题）。
+ */
+
+interface GhDefinition {
+  slug: string;
+  title: string;
+  titleEn: string;
+  date: string;
+  size: string;
+  desc: string;
+  preview?: string;
+  tags: string[];
+}
+
+const definitions: GhDefinition[] = [
+  {
+    slug: 'facade-4in1-skin',
+    title: '参数化外立面 · 四合一表皮',
+    titleEn: 'Parametric Facade — 4-in-1 Skin',
+    date: '2026.07.01',
+    size: '1.4 MB',
+    desc: '外立面表皮的参数化生成定义，四套表皮逻辑收在同一个文件内。',
+    preview: '/grasshopper/facade-4in1-skin.png',
+    tags: ['Facade', 'Skin', 'Rhino 8'],
+  },
+  {
+    slug: 'curtain-wall-stone-joint',
+    title: '幕墙石材分缝',
+    titleEn: 'Curtain Wall — Stone Joint Layout',
+    date: '2026.07.01',
+    size: '9 KB',
+    desc: '幕墙石材分缝排布的参数化定义，轻量工具。',
+    tags: ['Curtain Wall', 'Detailing', 'Rhino 8'],
+  },
+  {
+    slug: 'bridge-parametric',
+    title: '桥 · 纯参数化方案',
+    titleEn: 'Bridge — Fully Parametric Scheme',
+    date: '2026.07.01',
+    size: '810 KB',
+    desc: '桥梁方案的纯参数化定义，几何整体由参数驱动。',
+    preview: '/grasshopper/bridge-parametric.png',
+    tags: ['Bridge', 'Structure', 'Rhino 8'],
+  },
+];
+---
+
+<Base
+  title="Grasshopper"
+  description="WANG Bingqi 的 Grasshopper 参数化定义库 — 可自由下载"
+>
+  <section class="gh-intro">
+    <h2>Grasshopper 定义库</h2>
+    <p>
+      日常在用的参数化定义，直接下载 <code>.gh</code> 文件用 Rhino 8 + Grasshopper 打开即可。
+      随便取用，注明出处就行。
+    </p>
+  </section>
+
+  <section class="gh-list">
+    {definitions.map((item) => (
+      <article class="gh-card">
+        {item.preview && (
+          <a class="gh-preview" href={item.preview} target="_blank" rel="noopener">
+            <img src={item.preview} alt={item.title} loading="lazy" />
+          </a>
+        )}
+        <div class="gh-body">
+          <h3>{item.title}</h3>
+          <p class="gh-subtitle">{item.titleEn}</p>
+          <p class="gh-desc">{item.desc}</p>
+          <div class="gh-meta">
+            <span>{item.date}</span>
+            <span>{item.size}</span>
+            {item.tags.map((tag) => <span class="gh-tag">{tag}</span>)}
+          </div>
+          <a class="gh-download" href={`/grasshopper/${item.slug}.gh`} download>
+            Download .gh →
+          </a>
+        </div>
+      </article>
+    ))}
+  </section>
+
+  <section class="gh-note">
+    <p>
+      排布以文件名标注日期为准；定义维护在本地 Rhino 环境，若打开报缺失组件，
+      多半是第三方插件（如 AeroField / GG Sculpting）未装。
+    </p>
+  </section>
+</Base>
+
+<style>
+  .gh-intro h2 {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .gh-intro p {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 2.5rem;
+  }
+  .gh-intro code {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    background: var(--bg-alt);
+    padding: 0.15rem 0.4rem;
+    border-radius: var(--radius);
+  }
+
+  .gh-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+  .gh-card {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2.5rem;
+  }
+  .gh-preview {
+    display: block;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    margin-bottom: 1.25rem;
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .gh-preview img {
+    width: 100%;
+  }
+  .gh-body h3 {
+    font-size: 1.15rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text);
+  }
+  .gh-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    margin-top: 0.15rem;
+  }
+  .gh-desc {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin: 0.6rem 0 0.75rem;
+  }
+  .gh-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+  .gh-tag {
+    border: 1px solid var(--border);
+    padding: 0.1rem 0.5rem;
+    border-radius: var(--radius);
+    font-family: var(--font-sans);
+  }
+  .gh-download {
+    display: inline-block;
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid var(--border-accent);
+    padding: 0.4rem 0.9rem;
+    border-radius: var(--radius);
+    color: var(--accent);
+  }
+  .gh-download:hover {
+    background: var(--bg-alt);
+    color: #e0c080;
+  }
+
+  .gh-note {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    border-left: 2px solid var(--border);
+    padding-left: 1rem;
+  }
+</style>

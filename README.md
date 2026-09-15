@@ -30,8 +30,8 @@ git push -u origin main
 1. 打开 https://github.com/settings/developers → **OAuth Apps** → **Register a new application**
 2. 填写：
    - **Application name**: `Wang Bingqi Studio CMS`
-   - **Homepage URL**: `https://studio.wangbingqi.eu.org`
-   - **Authorization callback URL**: `https://studio.wangbingqi.eu.org/auth/callback`
+   - **Homepage URL**: `https://studio.miki2022.eu.org`
+   - **Authorization callback URL**: `https://studio.miki2022.eu.org/auth/callback`
 3. 点击 **Register application**
 4. 记下 **Client ID**（一串数字字母）
 5. 点 **Generate a new client secret**，复制 secret 并保存好
@@ -59,13 +59,13 @@ git push -u origin main
 ### 5. 绑定自定义域名
 
 1. 进入 Pages 项目 → **Custom domains** → **Set up a custom domain**
-2. 输入 `studio.wangbingqi.eu.org`
+2. 输入 `studio.miki2022.eu.org`
 3. Cloudflare 会自动添加 DNS 记录
 4. 等待 HTTPS 证书签发（约 1-2 分钟）
 
 ### 6. 验证登录
 
-1. 打开 `https://studio.wangbingqi.eu.org/admin/`
+1. 打开 `https://studio.miki2022.eu.org/admin/`
 2. 点击 **Login with GitHub**
 3. 授权后会自动跳回后台
 4. 新建一篇文章试试，点击 **Publish**
@@ -80,10 +80,12 @@ wang-bingqi-studio/
 │   │   ├── config.ts        # 内容模型定义
 │   │   └── posts/           # Markdown 文章（Decap CMS 写入这里）
 │   ├── layouts/
-│   │   └── Base.astro       # 全局布局
+│   │   └── Base.astro       # 全局布局（含顶部栏与导航）
 │   ├── pages/
 │   │   ├── index.astro      # 首页（文章列表）
 │   │   ├── 404.astro        # 404 页面
+│   │   ├── grasshopper/
+│   │   │   └── index.astro  # Grasshopper 定义库（条目在页内数组里维护）
 │   │   ├── posts/
 │   │   │   └── [...slug].astro  # 文章详情页
 │   │   └── category/
@@ -94,6 +96,7 @@ wang-bingqi-studio/
 │   ├── admin/
 │   │   ├── index.html       # Decap CMS 后台入口
 │   │   └── config.yml       # CMS 配置（连哪个仓库、字段定义）
+│   ├── grasshopper/         # .gh 定义与预览图（直接静态下载）
 │   └── assets/
 │       └── favicon.svg
 ├── functions/
@@ -109,7 +112,7 @@ wang-bingqi-studio/
 
 ### 写文章
 
-1. 打开 `https://studio.wangbingqi.eu.org/admin/`
+1. 打开 `https://studio.miki2022.eu.org/admin/`
 2. 点击 **Login with GitHub**
 3. 点击 **New Post** → 填写标题、正文、选分类
 4. 拖拽上传封面图（自动存到 `public/assets/uploads/`）
@@ -127,14 +130,33 @@ npm run dev
 
 | 分类 | 用途 |
 |---|---|
-| **Project** | 完整建筑项目展示（GBA 斜拉桥、海事博物馆等） |
+| **Project** | 完整建筑项目展示（斜拉桥参数化、海事博物馆等） |
 | **Research** | 参数化结构 / 数字建造 / AI 辅助设计研究 |
 | **Process** | 设计过程记录与方案迭代 |
 | **Note** | 日常笔记、灵感、资源整理 |
 
+### 维护 Grasshopper 定义库
+
+`src/pages/grasshopper/index.astro` 页首有个 `definitions` 数组，加一条记录即可上线：
+
+```ts
+{
+  slug: 'my-definition',              // 对应 public/grasshopper/my-definition.gh
+  title: '中文名',
+  titleEn: 'English Name',
+  date: '2026.07.01',
+  size: '1.4 MB',
+  desc: '一句话说明',
+  preview: '/grasshopper/my-definition.png',  // 可选，没有就删掉这行
+  tags: ['Rhino 8'],
+}
+```
+
+文件名统一用**纯 ASCII**（空格、中文、多层点号会让 URL 变难读），把原始中文名写进 `title` 即可。
+
 ## ⚙️ 国内可用说明
 
-- **域名**：`studio.wangbingqi.eu.org` 绑 Cloudflare，国内可直连
+- **域名**：`studio.miki2022.eu.org` 绑 Cloudflare，国内可直连
 - **CMS 脚本**：通过 jsDelivr CDN 加载（有国内节点）
 - **图片**：上传后托管在 GitHub + Cloudflare Pages 缓存
 - **如果后台加载慢**：下载 `decap-cms.js` 放到 `public/admin/` 并修改 `index.html` 指向本地文件

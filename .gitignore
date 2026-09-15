@@ -1,0 +1,11 @@
+# ===== 依赖 =====
+node_modules/
+
+# ===== 构建产物 =====
+dist/
+.astro/
+
+# ===== 系统 =====
+.DS_Store
+Thumbs.db
+*.log
