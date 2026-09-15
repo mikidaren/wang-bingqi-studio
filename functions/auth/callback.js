@@ -1,5 +1,13 @@
 // Cloudflare Pages Function — Decap CMS GitHub OAuth 回调
 // 处理 GitHub 授权后的回调，交换 code 换取 access token
+//
+// ⚠️ 凭据必须走环境变量，禁止硬编码。
+//    2026-09-15：本文件原有明文 client secret，随 public 仓库推送而泄露，已外置。
+//    配置位置：Cloudflare Dashboard → Workers & Pages → wang-bingqi-studio
+//             → Settings → Variables and Secrets
+//      · GITHUB_CLIENT_ID      普通变量
+//      · GITHUB_CLIENT_SECRET  **Secret 类型**
+//    先配置好再部署，否则登录会返回 500。
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -10,8 +18,18 @@ export async function onRequest(context) {
     return new Response('Missing authorization code', { status: 400 });
   }
 
-  const clientId = 'Ov23liLa3UEDvuAqqKMo';
-  const clientSecret = 'REDACTED-USE-ENV-GITHUB_CLIENT_SECRET';
+  const clientId = env.GITHUB_CLIENT_ID;
+  const clientSecret = env.GITHUB_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    return new Response(
+      'GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET 未配置。请在 Cloudflare Dashboard → ' +
+      'Workers & Pages → wang-bingqi-studio → Settings → Variables and Secrets 中添加' +
+      '（GITHUB_CLIENT_SECRET 请用 Secret 类型）。',
+      { status: 500 }
+    );
+  }
+
   const siteUrl = `${url.protocol}//${url.host}`;
 
   try {
