@@ -2,6 +2,10 @@
 
 建筑作品与研究笔记站 — Astro + Decap CMS + Cloudflare Pages
 
+- 线上：`https://studio.miki2022.eu.org`
+- 仓库：`https://github.com/mikidaren/wang-bingqi-studio`（public）
+- **推送即部署**：Cloudflare Pages 已接 GitHub，push `main` 会自动构建上线，不用手动上传
+
 ## 🚀 一键部署指南
 
 ### 1. 创建 GitHub 仓库
