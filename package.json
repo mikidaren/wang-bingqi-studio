@@ -5,7 +5,7 @@
   "description": "WANG Bingqi - Architecture Studio Blog",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && wrangler pages functions build --outfile dist/_worker.js --output-routes-path dist/_routes.json --compatibility-flags nodejs_compat",
+    "build": "astro build && wrangler pages functions build --outdir dist/_worker.js --output-routes-path dist/_routes.json --compatibility-flags nodejs_compat",
     "preview": "astro preview"
   },
   "dependencies": {
