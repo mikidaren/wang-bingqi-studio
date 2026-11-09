@@ -12,6 +12,8 @@
 
 固定生成路由为 `/category/project/design/compose` 和 `/category/project/design/draw`。在 Pages 的生产环境设置 `CHUNXIAO_BASE_URL`，将 `CHUNXIAO_TEXT_KEY` 和 `CHUNXIAO_IMAGE_KEY` 保存为 Secret。`wrangler.jsonc` 提供实际边缘运行配置。原通用代理路由已退休。
 
+构建时使用锁定的 Wrangler 版本将完整 Functions 路由编译为 `dist/_worker.js`，同时生成路由清单。这样 Pages 的旧版内置构建器可以直接发布预编译结果，原有认证路由和静态资源回退也一同保留。
+
 ```sh
 npm ci
 npm run build
