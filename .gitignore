@@ -9,3 +9,8 @@ dist/
 .DS_Store
 Thumbs.db
 *.log
+
+# 本地 Pages 私有配置
+.dev.vars
+.dev.vars.*
+.wrangler/

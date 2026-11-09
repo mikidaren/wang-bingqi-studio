@@ -6,6 +6,20 @@
 - 仓库：`https://github.com/mikidaren/wang-bingqi-studio`（public）
 - **推送即部署**：Cloudflare Pages 已接 GitHub，push `main` 会自动构建上线，不用手动上传
 
+## IceWorld 项目工作台
+
+`/category/project/` 承载原有的 S0–S6 引导流程。前端和共享生成服务由 Platform3 源码仓库的 `web/server/export-pages.mjs` 导出到本仓库，源码版本记录在 `public/category/project/build.json`。编辑产品逻辑时先修改源码仓库，再构建、导出和验证本宿主。
+
+固定生成路由为 `/category/project/design/compose` 和 `/category/project/design/draw`。在 Pages 的生产环境设置 `CHUNXIAO_BASE_URL`，将 `CHUNXIAO_TEXT_KEY` 和 `CHUNXIAO_IMAGE_KEY` 保存为 Secret。`wrangler.jsonc` 提供实际边缘运行配置。原通用代理路由已退休。
+
+```sh
+npm ci
+npm run build
+npx wrangler pages dev dist --ip 127.0.0.1 --port 4217 --show-interactive-dev-session false
+```
+
+本地私有变量放在被忽略的 `.dev.vars`。Pages 的请求计数按 isolate 运行，多个实例分别计数。
+
 ## 🚀 一键部署指南
 
 ### 1. 创建 GitHub 仓库

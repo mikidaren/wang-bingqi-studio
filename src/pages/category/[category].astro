@@ -4,7 +4,8 @@ import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
-  const categories = [...new Set(posts.map(p => p.data.category))];
+  // The project route is the standalone guided design workbench in public/.
+  const categories = [...new Set(posts.map(p => p.data.category))].filter(cat => cat !== 'project');
   return categories.map((cat) => ({
     params: { category: cat },
     props: { category: cat, posts: posts.filter(p => p.data.category === cat) },
