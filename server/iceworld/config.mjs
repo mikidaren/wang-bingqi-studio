@@ -19,6 +19,8 @@ export function readGenerationConfig(env) {
       !(base.protocol === 'https:' || (base.protocol === 'http:' && isLoopbackHost(base.hostname)))) {
     throw new Error('生成服务地址配置无效。')
   }
+  const imageProvider = env.SHOWCASE_IMAGE_PROVIDER || 'chunxiao'
+  if (!['chunxiao', 'openai'].includes(imageProvider)) throw new Error('图像生成渠道配置无效。')
   const imageModel = env.CHUNXIAO_IMAGE_MODEL || 'gemini-3-pro-image-preview'
   if (!/^[A-Za-z0-9._-]{1,120}$/.test(imageModel)) throw new Error('图像模型配置无效。')
   let publicOrigin
@@ -32,7 +34,7 @@ export function readGenerationConfig(env) {
     password, username: env.SHOWCASE_USER || 'showcase',
     publicOrigin, baseUrl: base.origin, basePath: readBasePath(env.STUDIO_BASE_PATH),
     textKey: env.CHUNXIAO_TEXT_KEY || '', imageKey: env.CHUNXIAO_IMAGE_KEY || '',
-    imageModel, textModel: 'gpt-6-sol',
+    imageProvider, imageModel, openaiImageKey: env.OPENAI_IMAGE_API_KEY || '', textModel: 'gpt-6-sol',
     perClientLimit: integer(env.SHOWCASE_RATE_LIMIT, 20, 120),
     globalLimit: integer(env.SHOWCASE_GLOBAL_RATE_LIMIT, 60, 1000),
     concurrency: integer(env.SHOWCASE_MAX_CONCURRENT, 3, 8),

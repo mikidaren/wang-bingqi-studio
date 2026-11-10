@@ -4,7 +4,9 @@ const MAX_PROMPT = 120_000
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024
 export const MAX_BODY_BYTES = 40 * 1024 * 1024
 const MAX_RESPONSE_BYTES = 40 * 1024 * 1024
-const aspects = new Set(['16:9', '4:3', '1:1', '3:4'])
+const openaiSizes = new Map([
+  ['16:9', '1536x864'], ['4:3', '1536x1152'], ['1:1', '1024x1024'], ['3:4', '1152x1536'],
+])
 
 export class RequestFailure extends Error {
   constructor(status, message, diagnostic) { super(message); this.status = status; this.diagnostic = diagnostic }
@@ -66,7 +68,7 @@ export function validateCompose(input, compileSchema) {
 export function validateDraw(input) {
   object(input, ['prompt', 'aspect', 'refs'])
   const prompt = text(input.prompt, MAX_PROMPT)
-  if (!aspects.has(input.aspect)) throw invalid()
+  if (!openaiSizes.has(input.aspect)) throw invalid()
   return { prompt, aspect: input.aspect, refs: references(input.refs) }
 }
 
@@ -99,11 +101,11 @@ async function responseJSON(response) {
   }
 }
 
-async function upstream(config, path, key, body, signal, timeout) {
+async function upstream(baseUrl, path, key, body, signal, timeout) {
   const deadline = AbortSignal.timeout(timeout)
   let upstreamStatus
   try {
-    const response = await fetch(new URL(path, config.baseUrl), {
+    const response = await fetch(new URL(path, baseUrl), {
       method: 'POST', redirect: 'manual', signal: AbortSignal.any([signal, deadline]),
       headers: { 'content-type': 'application/json', authorization: 'Bearer ' + key },
       body: JSON.stringify(body),
@@ -128,7 +130,7 @@ export async function composeDesign(config, input, signal) {
   const system = isLayout
     ? input.system + '\nReturn one JSON object conforming to this schema:\n' + JSON.stringify(input.schema)
     : input.system
-  const { body: result, status } = await upstream(config, '/v1/chat/completions', config.textKey, {
+  const { body: result, status } = await upstream(config.baseUrl, '/v1/chat/completions', config.textKey, {
     model: config.textModel, stream: false, max_completion_tokens: isLayout ? 4096 : 8192,
     messages: [{ role: 'system', content: system }, { role: 'user', content }],
     response_format: isLayout
@@ -145,11 +147,29 @@ export async function composeDesign(config, input, signal) {
   return { value }
 }
 
+async function drawWithOpenAI(config, input, signal) {
+  if (!config.openaiImageKey) throw new RequestFailure(503, '图像生成功能尚未启用，请先浏览示例方案。')
+  if (input.prompt.length > 32_000) throw new RequestFailure(400, '绘图提示词过长，请精简设计内容。')
+  const path = input.refs.length ? '/v1/images/edits' : '/v1/images/generations'
+  const { body: result, status } = await upstream('https://api.openai.com', path, config.openaiImageKey, {
+    model: 'gpt-image-2.6-flare', prompt: input.prompt, size: openaiSizes.get(input.aspect),
+    quality: 'medium', output_format: 'png', n: 1,
+    ...(input.refs.length ? {
+      images: input.refs.map(ref => ({ image_url: `data:${ref.mimeType};base64,${ref.data}` })),
+    } : {}),
+  }, signal, 300_000)
+  const data = result?.data?.[0]?.b64_json
+  if (!data) throw upstreamFailure('output_image_empty', status)
+  try { return image({ mimeType: 'image/png', data }, 24 * 1024 * 1024) }
+  catch { throw upstreamFailure('output_image_invalid', status) }
+}
+
 export async function drawDesign(config, input, signal) {
+  if (config.imageProvider === 'openai') return drawWithOpenAI(config, input, signal)
   if (!config.imageKey || config.imageModel === 'gemini-3.5-flash') {
     throw new RequestFailure(503, '图像生成功能尚未启用，请先浏览示例方案。')
   }
-  const { body: result, status } = await upstream(config, `/v1beta/models/${encodeURIComponent(config.imageModel)}:generateContent`, config.imageKey, {
+  const { body: result, status } = await upstream(config.baseUrl, `/v1beta/models/${encodeURIComponent(config.imageModel)}:generateContent`, config.imageKey, {
     contents: [{ role: 'user', parts: [...input.refs.map(ref => ({ inlineData: ref })), { text: input.prompt }] }],
     generationConfig: { responseModalities: ['TEXT', 'IMAGE'], imageConfig: { aspectRatio: input.aspect, imageSize: '2K' } },
   }, signal, 300_000)
