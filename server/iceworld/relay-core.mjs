@@ -1,5 +1,6 @@
 import { Buffer } from 'node:buffer'
 
+const OPENAI_ORIGIN = 'https://api.openai.com'
 const MAX_PROMPT = 120_000
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024
 export const MAX_BODY_BYTES = 40 * 1024 * 1024
@@ -120,7 +121,9 @@ async function upstream(baseUrl, path, key, body, signal, timeout) {
 }
 
 export async function composeDesign(config, input, signal) {
-  if (!config.textKey) throw new RequestFailure(503, '现场生成功能尚未启用，请先浏览示例方案。')
+  const official = config.textProvider === 'openai'
+  const key = official ? config.openaiKey : config.textKey
+  if (!key) throw new RequestFailure(503, '现场生成功能尚未启用，请先浏览示例方案。')
   const content = input.refs.length ? [
     { type: 'text', text: input.prompt },
     ...input.refs.map(ref => ({ type: 'image_url', image_url: { url: `data:${ref.mimeType};base64,${ref.data}` } })),
@@ -130,14 +133,14 @@ export async function composeDesign(config, input, signal) {
   const system = isLayout
     ? input.system + '\nReturn one JSON object conforming to this schema:\n' + JSON.stringify(input.schema)
     : input.system
-  const { body: result, status } = await upstream(config.baseUrl, '/v1/chat/completions', config.textKey, {
-    model: config.textModel, stream: false, max_completion_tokens: isLayout ? 4096 : 8192,
+  const { body: result, status } = await upstream(official ? OPENAI_ORIGIN : config.baseUrl, '/v1/chat/completions', key, {
+    model: official ? 'gpt-5.6-sol' : config.textModel, stream: false, max_completion_tokens: isLayout ? 4096 : 8192,
     messages: [{ role: 'system', content: system }, { role: 'user', content }],
     response_format: isLayout
       ? { type: 'json_object' }
       : { type: 'json_schema', json_schema: { name: input.name, strict: true, schema: input.schema } },
     ...(isLayout ? { reasoning_effort: 'low' } : {}),
-    ...(input.temperature === undefined ? {} : { temperature: input.temperature }),
+    ...(official || input.temperature === undefined ? {} : { temperature: input.temperature }),
   }, signal, 120_000)
   const output = result?.choices?.[0]?.message?.content
   if (typeof output !== 'string' || !output.trim()) throw upstreamFailure('output_empty', status)
@@ -148,10 +151,11 @@ export async function composeDesign(config, input, signal) {
 }
 
 async function drawWithOpenAI(config, input, signal) {
-  if (!config.openaiImageKey) throw new RequestFailure(503, '图像生成功能尚未启用，请先浏览示例方案。')
+  const key = config.openaiImageKey || config.openaiKey
+  if (!key) throw new RequestFailure(503, '图像生成功能尚未启用，请先浏览示例方案。')
   if (input.prompt.length > 32_000) throw new RequestFailure(400, '绘图提示词过长，请精简设计内容。')
   const path = input.refs.length ? '/v1/images/edits' : '/v1/images/generations'
-  const { body: result, status } = await upstream('https://api.openai.com', path, config.openaiImageKey, {
+  const { body: result, status } = await upstream(OPENAI_ORIGIN, path, key, {
     model: 'gpt-image-2.6-flare', prompt: input.prompt, size: openaiSizes.get(input.aspect),
     quality: 'medium', output_format: 'png', n: 1,
     ...(input.refs.length ? {

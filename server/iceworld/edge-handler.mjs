@@ -60,6 +60,9 @@ export function createEdgeHandler(env) {
     const compose = url.pathname === '/category/project/design/compose'
     const draw = url.pathname === '/category/project/design/draw'
     if (!compose && !draw) return json({ error: '找不到这个接口。' }, 404)
+    if ((compose ? config.textProvider : config.imageProvider) === 'openai' && !config.password) {
+      return json({ error: '生成服务尚未开放。' }, 503)
+    }
     if (!authorized(request, config)) {
       return json({ error: '请输入演示访问账号和口令。' }, 401, {
         'www-authenticate': 'Basic realm="IceWorld Private Showcase", charset="UTF-8"',
