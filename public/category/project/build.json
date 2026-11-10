@@ -1,6 +1,15 @@
 {
   "sourceRepository": "mikidaren/https-github.com-mikidaren-Project-IceWorld-Disney-Platform3-Claude",
-  "sourceRevision": "2edaedfd8983b3fab213764512d522605da01ee2",
-  "workflow": "S0-S6",
-  "basePath": "/category/project/"
+  "sourceRevision": "e0f58bd4da948242d40c2da6717473fba4c73b26",
+  "sourceDirty": false,
+  "buildId": "d68cf5e8e3966b90",
+  "workflow": "four-modules",
+  "drawingWorkflow": "three-independent-axonometric-options",
+  "basePath": "/category/project/",
+  "assetHashes": {
+    "castle-DGPatEsc.jpg": "72cd31aa16d2a1dc23b3f7116606f3e56a03c9996d221c1bccecba67029be5aa",
+    "index-Bj737acx.css": "a6b7753dd642332c1ca5468b7159f6d14f4bbf2b1537834a443db2492ac79ddd",
+    "index-ChUAS0lb.js": "b71432e5f22649dde160edb03d60251bc95ad306e5b7aa7e795dadf03e68e320",
+    "ridge-TvZ0GsaN.jpg": "007c821af85a2b47d8b900981582a84c0f4e33e80fad25229c0f5edb643431bd"
+  }
 }
