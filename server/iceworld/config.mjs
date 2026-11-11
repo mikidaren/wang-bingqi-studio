@@ -32,7 +32,7 @@ export function readGenerationConfig(env) {
     }
     magpieDrawOrigin = origin.origin
   }
-  const imageModel = env.CHUNXIAO_IMAGE_MODEL || 'gemini-3-pro-image-preview'
+  const imageModel = env.CHUNXIAO_IMAGE_MODEL || 'nano-banana-pro'
   if (!/^[A-Za-z0-9._-]{1,120}$/.test(imageModel)) throw new Error('图像模型配置无效。')
   let publicOrigin
   if (env.SHOWCASE_ORIGIN) {

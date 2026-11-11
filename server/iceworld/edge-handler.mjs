@@ -55,7 +55,8 @@ async function readJSON(request) {
 export function createEdgeHandler(env) {
   const config = readGenerationConfig(env)
   const limits = createLimiter(config)
-  const anonymousApp = env.SHOWCASE_ANONYMOUS_APP === '1' && config.imageProvider === 'agnes' && config.textProvider === 'chunxiao'
+  const anonymousApp = env.SHOWCASE_ANONYMOUS_APP === '1' &&
+    ['agnes', 'chunxiao'].includes(config.imageProvider) && config.textProvider === 'chunxiao'
   return async request => {
     const url = new URL(request.url)
     const compose = url.pathname === '/category/project/design/compose'
