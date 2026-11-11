@@ -22,7 +22,7 @@ export function readGenerationConfig(env) {
   const textProvider = env.SHOWCASE_TEXT_PROVIDER || 'chunxiao'
   if (!['chunxiao', 'openai'].includes(textProvider)) throw new Error('文本生成渠道配置无效。')
   const imageProvider = env.SHOWCASE_IMAGE_PROVIDER || 'chunxiao'
-  if (!['chunxiao', 'openai', 'magpie'].includes(imageProvider)) throw new Error('图像生成渠道配置无效。')
+  if (!['chunxiao', 'openai', 'magpie', 'agnes'].includes(imageProvider)) throw new Error('图像生成渠道配置无效。')
   let magpieDrawOrigin
   if (imageProvider === 'magpie' && env.MAGPIE_DRAW_ORIGIN) {
     const origin = new URL(env.MAGPIE_DRAW_ORIGIN)
@@ -47,6 +47,7 @@ export function readGenerationConfig(env) {
     textProvider, textKey: env.CHUNXIAO_TEXT_KEY || '', imageKey: env.CHUNXIAO_IMAGE_KEY || '',
     imageProvider, imageModel, openaiKey: env.OPENAI_API_KEY || '', openaiImageKey: env.OPENAI_IMAGE_API_KEY || '',
     textModel: 'gpt-6-sol', magpieDrawOrigin, magpieDrawToken: env.MAGPIE_DRAW_TOKEN || '',
+    agnesKey: env.AGNES_API_KEY || '',
     perClientLimit: integer(env.SHOWCASE_RATE_LIMIT, 20, 120),
     globalLimit: integer(env.SHOWCASE_GLOBAL_RATE_LIMIT, 60, 1000),
     concurrency: integer(env.SHOWCASE_MAX_CONCURRENT, 3, 8),

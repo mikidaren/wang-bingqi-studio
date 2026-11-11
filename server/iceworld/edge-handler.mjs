@@ -55,6 +55,7 @@ async function readJSON(request) {
 export function createEdgeHandler(env) {
   const config = readGenerationConfig(env)
   const limits = createLimiter(config)
+  const anonymousApp = env.SHOWCASE_ANONYMOUS_APP === '1' && config.imageProvider === 'agnes' && config.textProvider === 'chunxiao'
   return async request => {
     const url = new URL(request.url)
     const compose = url.pathname === '/category/project/design/compose'
@@ -64,12 +65,14 @@ export function createEdgeHandler(env) {
     if (['openai', 'magpie'].includes(compose ? config.textProvider : config.imageProvider) && !config.password) {
       return json({ error: '生成服务尚未开放。' }, 503)
     }
-    if (!authorized(request, config)) {
+    if (!anonymousApp && !authorized(request, config)) {
       return json({ error: '请输入演示访问账号和口令。' }, 401, {
         'www-authenticate': 'Basic realm="IceWorld Private Showcase", charset="UTF-8"',
       })
     }
-    if (access) return new Response('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>Studio 生成权限</title><p>已通过生成权限验证。</p><a href="../">返回设计工作台</a></html>', {
+    if (access) return new Response(anonymousApp
+      ? '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>Studio</title><p>当前工作台可直接使用，无需登录。</p><a href="../">打开设计工作台</a></html>'
+      : '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>Studio 生成权限</title><p>已通过生成权限验证。</p><a href="../">返回设计工作台</a></html>', {
       headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' },
     })
     if (request.method !== 'POST') return json({ error: '请通过页面提交设计请求。' }, 405, { allow: 'POST' })

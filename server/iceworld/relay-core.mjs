@@ -190,7 +190,23 @@ async function drawWithMagpie(config, input, signal, drawingId) {
   throw new RequestFailure(504, 'Magpie 绘图等待超时，请稍后重试。', { stage: 'magpie_job_timeout' })
 }
 
+async function drawWithAgnes(config, input, signal) {
+  if (!config.agnesKey) throw new RequestFailure(503, '图像生成功能尚未启用。')
+  const { body: result, status } = await upstream('https://api.agnes-ai.cn', '/v1/images/generations', config.agnesKey, {
+    model: 'agnes-image-2.5-flash', prompt: input.prompt, n: 1, size: '1K', ratio: input.aspect,
+    ...(input.refs.length
+      ? { extra_body: { image: input.refs.map(ref => 'data:' + ref.mimeType + ';base64,' + ref.data), response_format: 'b64_json' } }
+      : { return_base64: true }),
+  }, signal, 150_000)
+  const data = result?.data?.[0]?.b64_json
+  if (typeof data !== 'string' || !data) throw upstreamFailure('output_image_empty', status)
+  const mimeType = data.startsWith('/9j/') ? 'image/jpeg' : data.startsWith('UklGR') ? 'image/webp' : 'image/png'
+  try { return image({ mimeType, data }, 24 * 1024 * 1024) }
+  catch { throw upstreamFailure('output_image_invalid', status) }
+}
+
 export async function drawDesign(config, input, signal, drawingId) {
+  if (config.imageProvider === 'agnes') return drawWithAgnes(config, input, signal)
   if (config.imageProvider === 'magpie') return drawWithMagpie(config, input, signal, drawingId)
   if (config.imageProvider === 'openai') return drawWithOpenAI(config, input, signal)
   if (!config.imageKey || config.imageModel === 'gemini-3.5-flash') {
