@@ -102,12 +102,12 @@ async function responseJSON(response) {
   }
 }
 
-async function upstream(baseUrl, path, key, body, signal, timeout) {
+async function upstream(baseUrl, path, key, body, signal, timeout, method = 'POST') {
   const deadline = AbortSignal.timeout(timeout)
   let upstreamStatus
   try {
     const response = await fetch(new URL(path, baseUrl), {
-      method: 'POST', redirect: 'manual', signal: AbortSignal.any([signal, deadline]),
+      method, redirect: 'manual', signal: AbortSignal.any([signal, deadline]),
       headers: { 'content-type': 'application/json', authorization: 'Bearer ' + key },
       body: JSON.stringify(body),
     })
@@ -168,7 +168,30 @@ async function drawWithOpenAI(config, input, signal) {
   catch { throw upstreamFailure('output_image_invalid', status) }
 }
 
-export async function drawDesign(config, input, signal) {
+async function drawWithMagpie(config, input, signal, drawingId) {
+  const { magpieDrawOrigin: origin, magpieDrawToken: key } = config
+  if (!origin || key.length < 32) throw new RequestFailure(503, 'Magpie 绘图服务尚未启用。')
+  const payload = typeof drawingId === 'string' && /^[A-Za-z0-9_-]{8,64}$/.test(drawingId) ? { ...input, drawingId } : input
+  const job = await upstream(origin, '/studio/draw', key, payload, signal, 20_000)
+  const id = job.body?.id
+  if (job.status !== 202 || typeof id !== 'string' || !/^[a-f0-9-]{36}$/.test(id)) {
+    throw upstreamFailure('magpie_job_invalid', job.status)
+  }
+  const deadline = Date.now() + 270_000
+  while (Date.now() < deadline) {
+    const result = await upstream(origin, '/studio/draw/' + id, key, undefined, signal, 20_000, 'GET')
+    if (result.status !== 202) {
+      try { return image(result.body, 24 * 1024 * 1024) }
+      catch { throw upstreamFailure('magpie_image_invalid', result.status) }
+    }
+    await new Promise(resolve => setTimeout(resolve, 7_000))
+    signal.throwIfAborted()
+  }
+  throw new RequestFailure(504, 'Magpie 绘图等待超时，请稍后重试。', { stage: 'magpie_job_timeout' })
+}
+
+export async function drawDesign(config, input, signal, drawingId) {
+  if (config.imageProvider === 'magpie') return drawWithMagpie(config, input, signal, drawingId)
   if (config.imageProvider === 'openai') return drawWithOpenAI(config, input, signal)
   if (!config.imageKey || config.imageModel === 'gemini-3.5-flash') {
     throw new RequestFailure(503, '图像生成功能尚未启用，请先浏览示例方案。')

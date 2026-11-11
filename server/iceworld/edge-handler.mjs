@@ -59,8 +59,9 @@ export function createEdgeHandler(env) {
     const url = new URL(request.url)
     const compose = url.pathname === '/category/project/design/compose'
     const draw = url.pathname === '/category/project/design/draw'
-    if (!compose && !draw) return json({ error: '找不到这个接口。' }, 404)
-    if ((compose ? config.textProvider : config.imageProvider) === 'openai' && !config.password) {
+    const access = url.pathname === '/category/project/design/access' && request.method === 'GET'
+    if (!compose && !draw && !access) return json({ error: '找不到这个接口。' }, 404)
+    if (['openai', 'magpie'].includes(compose ? config.textProvider : config.imageProvider) && !config.password) {
       return json({ error: '生成服务尚未开放。' }, 503)
     }
     if (!authorized(request, config)) {
@@ -68,6 +69,9 @@ export function createEdgeHandler(env) {
         'www-authenticate': 'Basic realm="IceWorld Private Showcase", charset="UTF-8"',
       })
     }
+    if (access) return new Response('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>Studio 生成权限</title><p>已通过生成权限验证。</p><a href="../">返回设计工作台</a></html>', {
+      headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' },
+    })
     if (request.method !== 'POST') return json({ error: '请通过页面提交设计请求。' }, 405, { allow: 'POST' })
     if (url.search || request.headers.get('origin') !== (config.publicOrigin || url.origin)) {
       return json({ error: '请从当前演示网站发起请求。' }, 403)
@@ -81,7 +85,7 @@ export function createEdgeHandler(env) {
       if (compose && typeof body?.name === 'string' && /^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(body.name)) operation = body.name
       const result = compose
         ? await composeDesign(config, validateCompose(body, compileEdgeSchema), request.signal)
-        : await drawDesign(config, validateDraw(body), request.signal)
+        : await drawDesign(config, validateDraw(body), request.signal, request.headers.get('x-studio-drawing-id'))
       return json(result)
     } catch (error) {
       if (error?.diagnostic || !(error instanceof RequestFailure)) {
