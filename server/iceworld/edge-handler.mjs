@@ -62,7 +62,9 @@ export function createEdgeHandler(env) {
     const draw = url.pathname === '/category/project/design/draw'
     const access = url.pathname === '/category/project/design/access' && request.method === 'GET'
     if (!compose && !draw && !access) return json({ error: '找不到这个接口。' }, 404)
-    if (['openai', 'magpie'].includes(compose ? config.textProvider : config.imageProvider) && !config.password) {
+    const privateProvider = ['openai', 'magpie'].includes(compose ? config.textProvider : config.imageProvider)
+      || (draw && config.imageProvider === 'agnes' && !anonymousApp)
+    if (privateProvider && !config.password) {
       return json({ error: '生成服务尚未开放。' }, 503)
     }
     if (!anonymousApp && !authorized(request, config)) {
