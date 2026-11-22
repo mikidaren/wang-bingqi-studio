@@ -14,3 +14,8 @@ Thumbs.db
 .dev.vars
 .dev.vars.*
 .wrangler/
+
+# Python resource exporter caches
+__pycache__/
+*.py[cod]
+

@@ -1,0 +1,39 @@
+---
+import { getCollection } from 'astro:content';
+import CloudResourceDashboard from '../../components/CloudResourceDashboard.astro';
+import dashboard from '../../data/cloud-resources.json';
+
+const posts = (await getCollection('posts', ({ data }) => !data.draft && data.category === 'process'))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="我的免费云资源：算力、托管、存储、AI 服务和开发工具，按领取记录查看配置与控制台入口。" />
+    <meta name="theme-color" content="#edf3ef" />
+    <title>云资源 · Process — WANG Bingqi Studio</title>
+    <link rel="canonical" href="https://studio.miki2022.eu.org/category/process/" />
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  </head>
+  <body class="cloud-resources-page">
+    <CloudResourceDashboard dashboard={dashboard} showPosts={posts.length > 0}>
+      {posts.length > 0 && (
+        <section slot="posts" class="process-notes" aria-labelledby="process-notes-title">
+          <h2 id="process-notes-title">过程记录</h2>
+          {posts.map(post => (
+            <article>
+              <h3><a href={`/posts/${post.slug}/`}>{post.data.title}</a></h3>
+              <time datetime={post.data.date.toISOString()}>
+                {post.data.date.toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai', year: 'numeric', month: 'long', day: 'numeric' })}
+              </time>
+              {post.data.description && <p>{post.data.description}</p>}
+            </article>
+          ))}
+        </section>
+      )}
+    </CloudResourceDashboard>
+  </body>
+</html>

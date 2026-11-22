@@ -6,6 +6,10 @@
 - 仓库：`https://github.com/mikidaren/wang-bingqi-studio`（public）
 - **推送即部署**：Cloudflare Pages 已接 GitHub，push `main` 会自动构建上线，不用手动上传
 
+## 云资源面板
+
+`/category/process` 展示已领取及已注册待接入的云资源，支持分类、搜索和领取状态筛选，使用独立的浅色卡片布局。完整台账保留在资源仓库，这里只保存经过白名单导出的公开快照。更新方法见 [云资源页面维护说明](docs/CLOUD_RESOURCES.md)。
+
 ## IceWorld 项目工作台
 
 `/category/project/` 承载原有的 S0–S6 引导流程。前端和共享生成服务由 Platform3 源码仓库的 `web/server/export-pages.mjs` 导出到本仓库，源码版本记录在 `public/category/project/build.json`。编辑产品逻辑时先修改源码仓库，再构建、导出和验证本宿主。
@@ -180,3 +184,4 @@ npm run dev
 - **CMS 脚本**：通过 jsDelivr CDN 加载（有国内节点）
 - **图片**：上传后托管在 GitHub + Cloudflare Pages 缓存
 - **如果后台加载慢**：下载 `decap-cms.js` 放到 `public/admin/` 并修改 `index.html` 指向本地文件
+

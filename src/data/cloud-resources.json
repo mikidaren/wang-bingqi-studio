@@ -1,0 +1,981 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-23",
+  "sourceCheckedAt": "2026-11-22T20:58:40Z",
+  "notice": "依据领取与注册记录整理。配置和方案额度为记录信息；当前运行状态与账户余额未实时查询。",
+  "summary": {
+    "claimed": 15,
+    "registered": 13,
+    "total": 28
+  },
+  "categories": [
+    {
+      "id": "compute",
+      "label": "算力与环境"
+    },
+    {
+      "id": "hosting",
+      "label": "托管与网络"
+    },
+    {
+      "id": "storage",
+      "label": "存储与数据库"
+    },
+    {
+      "id": "ai",
+      "label": "AI 服务"
+    },
+    {
+      "id": "browser",
+      "label": "浏览器与采集"
+    },
+    {
+      "id": "tools",
+      "label": "开发工具"
+    }
+  ],
+  "resources": [
+    {
+      "id": "github-actions-compute",
+      "provider": "GitHub",
+      "name": "GitHub Actions",
+      "category": "compute",
+      "initials": "GH",
+      "accent": "#24292f",
+      "summary": "Linux CPU 曾完成计算任务；当前使用受限。",
+      "officialUrl": "https://docs.github.com/en/actions",
+      "configuration": [
+        {
+          "label": "环境记录",
+          "value": "Ubuntu Linux"
+        },
+        {
+          "label": "算力配置",
+          "value": "按任务分配"
+        },
+        {
+          "label": "额度状态",
+          "value": "待重新核验"
+        }
+      ],
+      "claimStatus": "claimed",
+      "claimLabel": "已领取",
+      "recordedAt": "2026-11-11",
+      "evidenceType": "runtime",
+      "evidenceLabel": "历史运行记录",
+      "availability": "restricted",
+      "availabilityLabel": "当前受限",
+      "consoleUrl": "https://github.com/settings/billing",
+      "consoleLabel": "查看账户用量"
+    },
+    {
+      "id": "cloudflare-quick-tunnel",
+      "provider": "Cloudflare",
+      "name": "Cloudflare Quick Tunnel",
+      "category": "hosting",
+      "initials": "CF",
+      "accent": "#f48120",
+      "summary": "已完成临时 HTTPS 访问测试，测试隧道已结束。",
+      "officialUrl": "https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/",
+      "configuration": [
+        {
+          "label": "服务类型",
+          "value": "临时 HTTPS 隧道"
+        },
+        {
+          "label": "地址分配",
+          "value": "每次运行生成"
+        },
+        {
+          "label": "使用记录",
+          "value": "历史测试"
+        }
+      ],
+      "claimStatus": "claimed",
+      "claimLabel": "已领取",
+      "recordedAt": "2026-11-10",
+      "evidenceType": "runtime",
+      "evidenceLabel": "历史运行记录",
+      "availability": "historical",
+      "availabilityLabel": "历史临时使用"
+    },
+    {
+      "id": "kaggle-gpu",
+      "provider": "Kaggle",
+      "name": "Kaggle GPU",
+      "category": "compute",
+      "initials": "K",
+      "accent": "#20a7d8",
+      "summary": "双 T4 笔记本环境，已有 GPU 运算记录。",
+      "officialUrl": "https://www.kaggle.com/code",
+      "configuration": [
+        {
+          "label": "GPU 记录",
+          "value": "Tesla T4 × 2"
+        },
+        {
+          "label": "显存记录",
+          "value": "16 GB / 张"
+        },
+        {
+          "label": "可用时长",
+          "value": "随账户配额变化"
+        }
+      ],
+      "claimStatus": "claimed",
+      "claimLabel": "已领取",
+      "recordedAt": "2026-11-11",
+      "evidenceType": "runtime",
+      "evidenceLabel": "历史运行记录",
+      "availability": "recorded",
+      "availabilityLabel": "已有运行记录",
+      "consoleUrl": "https://www.kaggle.com/code",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "colab-free",
+      "provider": "Google",
+      "name": "Google Colab",
+      "category": "compute",
+      "initials": "CO",
+      "accent": "#e89b10",
+      "summary": "免费笔记本曾完成 CPU、GPU 与 TPU 运算。",
+      "officialUrl": "https://colab.research.google.com/",
+      "configuration": [
+        {
+          "label": "GPU 记录",
+          "value": "Tesla T4"
+        },
+        {
+          "label": "TPU 记录",
+          "value": "TPU v5 lite"
+        },
+        {
+          "label": "当前配置",
+          "value": "按会话分配"
+        }
+      ],
+      "claimStatus": "claimed",
+      "claimLabel": "已领取",
+      "recordedAt": "2026-11-11",
+      "evidenceType": "runtime",
+      "evidenceLabel": "历史运行记录",
+      "availability": "recorded",
+      "availabilityLabel": "已有运行记录",
+      "consoleUrl": "https://colab.research.google.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "google-cloud-shell",
+      "provider": "Google Cloud",
+      "name": "Google Cloud Shell",
+      "category": "tools",
+      "initials": "GC",
+      "accent": "#4285f4",
+      "summary": "已有 Linux 开发终端运行记录，适合临时开发任务。",
+      "officialUrl": "https://shell.cloud.google.com/",
+      "configuration": [
+        {
+          "label": "方案时长",
+          "value": "50 小时 / 周"
+        },
+        {
+          "label": "HOME 容量",
+          "value": "5 GB"
+        },
+        {
+          "label": "剩余时长",
+          "value": "待核验"
+        }
+      ],
+      "claimStatus": "claimed",
+      "claimLabel": "已领取",
+      "recordedAt": "2026-11-11",
+      "evidenceType": "runtime",
+      "evidenceLabel": "历史运行记录",
+      "availability": "recorded",
+      "availabilityLabel": "已有运行记录",
+      "consoleUrl": "https://shell.cloud.google.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "cloudflare-workers",
+      "provider": "Cloudflare",
+      "name": "Cloudflare Workers",
+      "category": "hosting",
+      "initials": "CF",
+      "accent": "#f48120",
+      "summary": "已有 Worker 运行记录，适合边缘接口与轻量应用。",
+      "officialUrl": "https://developers.cloudflare.com/workers/",
+      "configuration": [
+        {
+          "label": "方案请求量",
+          "value": "100,000 次 / 日"
+        },
+        {
+          "label": "CPU 限额",
+          "value": "10 ms / 请求"
+        },
+        {
+          "label": "运行方式",
+          "value": "按请求执行"
+        }
+      ],
+      "claimStatus": "claimed",
+      "claimLabel": "已领取",
+      "recordedAt": "2026-11-19",
+      "evidenceType": "runtime",
+      "evidenceLabel": "历史运行记录",
+      "availability": "recorded",
+      "availabilityLabel": "已有运行记录",
+      "consoleUrl": "https://dash.cloudflare.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "hf-zerogpu",
+      "provider": "Hugging Face",
+      "name": "Hugging Face ZeroGPU",
+      "category": "ai",
+      "initials": "HF",
+      "accent": "#c79d13",
+      "summary": "账户注册已登记，GPU 访问与 Space 运行仍待验收。",
+      "officialUrl": "https://huggingface.co/docs/hub/spaces-zerogpu",
+      "configuration": [
+        {
+          "label": "公开日额度",
+          "value": "5 分钟 GPU"
+        },
+        {
+          "label": "刷新规则",
+          "value": "首次使用后 24 小时"
+        },
+        {
+          "label": "当前可用性",
+          "value": "待核验"
+        }
+      ],
+      "claimStatus": "registered",
+      "claimLabel": "待接入",
+      "recordedAt": "2026-11-23",
+      "evidenceType": "user-confirmed",
+      "evidenceLabel": "用户确认注册",
+      "availability": "awaiting-setup",
+      "availabilityLabel": "待接入验收",
+      "consoleUrl": "https://huggingface.co/settings/profile",
+      "consoleLabel": "打开账户设置"
+    },
+    {
+      "id": "cloudflare-pages",
+      "provider": "Cloudflare",
+      "name": "Cloudflare Pages",
+      "category": "hosting",
+      "initials": "CF",
+      "accent": "#f48120",
+      "summary": "已用于静态网站托管与自定义域名访问。",
+      "officialUrl": "https://developers.cloudflare.com/pages/",
+      "configuration": [
+        {
+          "label": "方案构建量",
+          "value": "500 次 / 月"
+        },
+        {
+          "label": "服务类型",
+          "value": "静态网站托管"
+        },
+        {
+          "label": "构建余量",
+          "value": "待核验"
+        }
+      ],
+      "claimStatus": "claimed",
+      "claimLabel": "已领取",
+      "recordedAt": "2026-11-19",
+      "evidenceType": "runtime",
+      "evidenceLabel": "历史运行记录",
+      "availability": "recorded",
+      "availabilityLabel": "已有运行记录",
+      "consoleUrl": "https://dash.cloudflare.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "cloudflare-kv",
+      "provider": "Cloudflare",
+      "name": "Cloudflare Workers KV",
+      "category": "storage",
+      "initials": "KV",
+      "accent": "#e27419",
+      "summary": "已有键值存储使用记录，适合边缘应用的小型数据。",
+      "officialUrl": "https://developers.cloudflare.com/kv/",
+      "configuration": [
+        {
+          "label": "方案容量",
+          "value": "1 GB"
+        },
+        {
+          "label": "读取额度",
+          "value": "100,000 次 / 日"
+        },
+        {
+          "label": "写入额度",
+          "value": "1,000 次 / 日"
+        }
+      ],
+      "claimStatus": "claimed",
+      "claimLabel": "已领取",
+      "recordedAt": "2026-11-19",
+      "evidenceType": "runtime",
+      "evidenceLabel": "历史运行记录",
+      "availability": "recorded",
+      "availabilityLabel": "已有运行记录",
+      "consoleUrl": "https://dash.cloudflare.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "cloudflare-r2-webdav",
+      "provider": "Cloudflare",
+      "name": "Cloudflare R2",
+      "category": "storage",
+      "initials": "R2",
+      "accent": "#e27419",
+      "summary": "对象存储与 WebDAV 已有使用记录；超出包含额度可能计费。",
+      "officialUrl": "https://developers.cloudflare.com/r2/pricing/",
+      "configuration": [
+        {
+          "label": "包含存储量",
+          "value": "10 GB-month"
+        },
+        {
+          "label": "Class A 请求",
+          "value": "100 万次 / 月"
+        },
+        {
+          "label": "Class B 请求",
+          "value": "1,000 万次 / 月"
+        },
+        {
+          "label": "费用边界",
+          "value": "超额可能计费"
+        }
+      ],
+      "claimStatus": "claimed",
+      "claimLabel": "已领取",
+      "recordedAt": "2026-11-19",
+      "evidenceType": "runtime",
+      "evidenceLabel": "历史运行记录",
+      "availability": "recorded",
+      "availabilityLabel": "已有运行记录",
+      "consoleUrl": "https://dash.cloudflare.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "cloudflare-browser-run",
+      "provider": "Cloudflare",
+      "name": "Cloudflare Browser Run",
+      "category": "browser",
+      "initials": "CF",
+      "accent": "#f48120",
+      "summary": "云端浏览器已有运行记录，可用于网页访问与自动化。",
+      "officialUrl": "https://developers.cloudflare.com/browser-rendering/",
+      "configuration": [
+        {
+          "label": "方案时长",
+          "value": "10 分钟 / 日"
+        },
+        {
+          "label": "并发上限",
+          "value": "3 个浏览器"
+        },
+        {
+          "label": "当前余量",
+          "value": "待核验"
+        }
+      ],
+      "claimStatus": "claimed",
+      "claimLabel": "已领取",
+      "recordedAt": "2026-11-19",
+      "evidenceType": "runtime",
+      "evidenceLabel": "历史运行记录",
+      "availability": "recorded",
+      "availabilityLabel": "已有运行记录",
+      "consoleUrl": "https://dash.cloudflare.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "browserless-free",
+      "provider": "Browserless",
+      "name": "Browserless",
+      "category": "browser",
+      "initials": "BL",
+      "accent": "#6c53d8",
+      "summary": "已有云浏览器调用记录，方案额度来自历史账户快照。",
+      "officialUrl": "https://www.browserless.io/pricing",
+      "configuration": [
+        {
+          "label": "历史月额度",
+          "value": "1,000 units"
+        },
+        {
+          "label": "额度记录",
+          "value": "2026-11-11"
+        },
+        {
+          "label": "当前余量",
+          "value": "待核验"
+        }
+      ],
+      "claimStatus": "claimed",
+      "claimLabel": "已领取",
+      "recordedAt": "2026-11-19",
+      "evidenceType": "runtime",
+      "evidenceLabel": "历史运行记录",
+      "availability": "recorded",
+      "availabilityLabel": "已有运行记录",
+      "consoleUrl": "https://www.browserless.io/account/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "anchor-free",
+      "provider": "Anchor",
+      "name": "Anchor Browser",
+      "category": "browser",
+      "initials": "AN",
+      "accent": "#7357d8",
+      "summary": "已有账户记录，浏览器会话创建仍待接入验收。",
+      "officialUrl": "https://anchorbrowser.io/",
+      "configuration": [
+        {
+          "label": "历史月额度",
+          "value": "5 credits"
+        },
+        {
+          "label": "历史并发上限",
+          "value": "5 个会话"
+        },
+        {
+          "label": "当前余量",
+          "value": "待核验"
+        }
+      ],
+      "claimStatus": "registered",
+      "claimLabel": "待接入",
+      "recordedAt": "2026-11-19",
+      "evidenceType": "account",
+      "evidenceLabel": "账户记录",
+      "availability": "awaiting-setup",
+      "availabilityLabel": "待接入验收",
+      "consoleUrl": "https://app.anchorbrowser.io/mcp",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "cloudflare-d1",
+      "provider": "Cloudflare",
+      "name": "Cloudflare D1",
+      "category": "storage",
+      "initials": "D1",
+      "accent": "#e27419",
+      "summary": "已由用户确认领取，数据库运行与用量仍待核验。",
+      "officialUrl": "https://developers.cloudflare.com/d1/",
+      "configuration": [
+        {
+          "label": "方案总容量",
+          "value": "5 GB"
+        },
+        {
+          "label": "单库上限",
+          "value": "500 MB"
+        },
+        {
+          "label": "读取额度",
+          "value": "500 万行 / 日"
+        },
+        {
+          "label": "写入额度",
+          "value": "10 万行 / 日"
+        }
+      ],
+      "claimStatus": "claimed",
+      "claimLabel": "已领取",
+      "recordedAt": "2026-11-23",
+      "evidenceType": "user-confirmed",
+      "evidenceLabel": "用户确认领取",
+      "availability": "unverified",
+      "availabilityLabel": "当前状态待核验",
+      "consoleUrl": "https://dash.cloudflare.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "neon-free",
+      "provider": "Neon",
+      "name": "Neon Postgres",
+      "category": "storage",
+      "initials": "NE",
+      "accent": "#15976b",
+      "summary": "Postgres 账户已注册，正式数据库项目待接入验收。",
+      "officialUrl": "https://neon.com/pricing",
+      "configuration": [
+        {
+          "label": "公开计算额度",
+          "value": "100 CU-hours / 项目 / 月"
+        },
+        {
+          "label": "公开存储额度",
+          "value": "1 GB / 项目"
+        },
+        {
+          "label": "正式项目",
+          "value": "待验收"
+        }
+      ],
+      "claimStatus": "registered",
+      "claimLabel": "待接入",
+      "recordedAt": "2026-11-23",
+      "evidenceType": "user-confirmed",
+      "evidenceLabel": "用户确认注册",
+      "availability": "awaiting-setup",
+      "availabilityLabel": "待接入验收",
+      "consoleUrl": "https://console.neon.tech/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "railway-anonymous-vm",
+      "provider": "Railway",
+      "name": "Railway 临时云环境",
+      "category": "compute",
+      "initials": "RW",
+      "accent": "#6949a8",
+      "summary": "曾验证短时 Linux 任务，记录不代表持续运行的实例。",
+      "officialUrl": "https://railway.com/free-vm",
+      "configuration": [
+        {
+          "label": "CPU 记录",
+          "value": "2 vCPU"
+        },
+        {
+          "label": "内存记录",
+          "value": "2 GB"
+        },
+        {
+          "label": "历史任务时限",
+          "value": "60 分钟"
+        }
+      ],
+      "claimStatus": "claimed",
+      "claimLabel": "已领取",
+      "recordedAt": "2026-11-19",
+      "evidenceType": "runtime",
+      "evidenceLabel": "历史运行记录",
+      "availability": "historical",
+      "availabilityLabel": "历史临时使用"
+    },
+    {
+      "id": "backblaze-b2-free",
+      "provider": "Backblaze",
+      "name": "Backblaze B2",
+      "category": "storage",
+      "initials": "B2",
+      "accent": "#d83e47",
+      "summary": "对象存储账户已登记，存储桶与实际用量待接入。",
+      "officialUrl": "https://www.backblaze.com/cloud-storage/pricing",
+      "configuration": [
+        {
+          "label": "公开免费容量",
+          "value": "前 10 GB"
+        },
+        {
+          "label": "出站规则",
+          "value": "月均存储量的 3 倍"
+        },
+        {
+          "label": "账户用量",
+          "value": "待核验"
+        }
+      ],
+      "claimStatus": "registered",
+      "claimLabel": "待接入",
+      "recordedAt": "2026-11-23",
+      "evidenceType": "user-confirmed",
+      "evidenceLabel": "用户确认注册",
+      "availability": "awaiting-setup",
+      "availabilityLabel": "待接入验收",
+      "consoleUrl": "https://secure.backblaze.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "browserbase-free",
+      "provider": "Browserbase",
+      "name": "Browserbase",
+      "category": "browser",
+      "initials": "BB",
+      "accent": "#d26740",
+      "summary": "云浏览器账户已注册，会话与账户用量尚待验收。",
+      "officialUrl": "https://docs.browserbase.com/",
+      "configuration": [
+        {
+          "label": "公开浏览器额度",
+          "value": "60 分钟 / 月"
+        },
+        {
+          "label": "Fetch 额度",
+          "value": "1,000 次 / 月"
+        },
+        {
+          "label": "并发上限",
+          "value": "3 个会话"
+        }
+      ],
+      "claimStatus": "registered",
+      "claimLabel": "待接入",
+      "recordedAt": "2026-11-23",
+      "evidenceType": "user-confirmed",
+      "evidenceLabel": "用户确认注册",
+      "availability": "awaiting-setup",
+      "availabilityLabel": "待接入验收",
+      "consoleUrl": "https://www.browserbase.com/overview",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "instabox-free",
+      "provider": "InstaBox",
+      "name": "InstaBox 云电脑",
+      "category": "compute",
+      "initials": "IB",
+      "accent": "#507caa",
+      "summary": "云电脑配置由历史截图确认，当前运行状态待核验。",
+      "officialUrl": "https://dashboard.instabox.sh",
+      "configuration": [
+        {
+          "label": "CPU 截图",
+          "value": "4 vCPU"
+        },
+        {
+          "label": "内存截图",
+          "value": "8 GiB"
+        },
+        {
+          "label": "存储截图",
+          "value": "20 GiB"
+        },
+        {
+          "label": "实例数量记录",
+          "value": "1 台"
+        }
+      ],
+      "claimStatus": "claimed",
+      "claimLabel": "已领取",
+      "recordedAt": "2026-11-21",
+      "evidenceType": "screenshot",
+      "evidenceLabel": "历史截图确认",
+      "availability": "unverified",
+      "availabilityLabel": "当前状态待核验",
+      "consoleUrl": "https://dashboard.instabox.sh",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "northflank-sandbox",
+      "provider": "Northflank",
+      "name": "Northflank Sandbox",
+      "category": "hosting",
+      "initials": "NF",
+      "accent": "#4b72d3",
+      "summary": "应用托管账户已注册，服务部署与实际额度待验收。",
+      "officialUrl": "https://northflank.com/pricing",
+      "configuration": [
+        {
+          "label": "公开服务配额",
+          "value": "2 个 services"
+        },
+        {
+          "label": "任务配额",
+          "value": "2 个 jobs"
+        },
+        {
+          "label": "数据库配额",
+          "value": "1 个 database"
+        }
+      ],
+      "claimStatus": "registered",
+      "claimLabel": "待接入",
+      "recordedAt": "2026-11-23",
+      "evidenceType": "user-confirmed",
+      "evidenceLabel": "用户确认注册",
+      "availability": "awaiting-setup",
+      "availabilityLabel": "待接入验收",
+      "consoleUrl": "https://app.northflank.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "zenrows-free",
+      "provider": "Zenrows",
+      "name": "Zenrows",
+      "category": "browser",
+      "initials": "ZR",
+      "accent": "#db7147",
+      "summary": "网页采集账户已登记，接口调用与余额待接入验收。",
+      "officialUrl": "https://www.zenrows.com/pricing",
+      "configuration": [
+        {
+          "label": "公开月额度",
+          "value": "5,000 credits"
+        },
+        {
+          "label": "服务类型",
+          "value": "网页采集 API"
+        },
+        {
+          "label": "当前余额",
+          "value": "待核验"
+        }
+      ],
+      "claimStatus": "registered",
+      "claimLabel": "待接入",
+      "recordedAt": "2026-11-23",
+      "evidenceType": "user-confirmed",
+      "evidenceLabel": "用户确认注册",
+      "availability": "awaiting-setup",
+      "availabilityLabel": "待接入验收",
+      "consoleUrl": "https://app.zenrows.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "apify-free",
+      "provider": "Apify",
+      "name": "Apify",
+      "category": "browser",
+      "initials": "AP",
+      "accent": "#bc7341",
+      "summary": "自动化平台账户已注册，Actor 运行与实际消费待验收。",
+      "officialUrl": "https://apify.com/pricing",
+      "configuration": [
+        {
+          "label": "公开月额度",
+          "value": "$5"
+        },
+        {
+          "label": "运行方式",
+          "value": "Actor 任务"
+        },
+        {
+          "label": "实际消费",
+          "value": "待核验"
+        }
+      ],
+      "claimStatus": "registered",
+      "claimLabel": "待接入",
+      "recordedAt": "2026-11-23",
+      "evidenceType": "user-confirmed",
+      "evidenceLabel": "用户确认注册",
+      "availability": "awaiting-setup",
+      "availabilityLabel": "待接入验收",
+      "consoleUrl": "https://console.apify.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "firecrawl-free",
+      "provider": "Firecrawl",
+      "name": "Firecrawl",
+      "category": "browser",
+      "initials": "FC",
+      "accent": "#de6b37",
+      "summary": "已通过连接器读取网页，历史额度保留独立观测时间。",
+      "officialUrl": "https://www.firecrawl.dev/pricing",
+      "configuration": [
+        {
+          "label": "计量单位",
+          "value": "credits"
+        },
+        {
+          "label": "刷新周期",
+          "value": "按账户账期"
+        },
+        {
+          "label": "验证途径",
+          "value": "已连接服务"
+        }
+      ],
+      "claimStatus": "claimed",
+      "claimLabel": "已领取",
+      "recordedAt": "2026-11-23",
+      "evidenceType": "runtime",
+      "evidenceLabel": "历史运行记录",
+      "availability": "recorded",
+      "availabilityLabel": "已有运行记录",
+      "consoleUrl": "https://www.firecrawl.dev/app",
+      "consoleLabel": "打开控制台",
+      "quota": {
+        "label": "已记录余额",
+        "value": "1,025 credits",
+        "checkedAt": "2026-11-22T17:52:03Z",
+        "note": "历史快照，非当前余额。余额高于账期额度，额外额度来源未核实。"
+      }
+    },
+    {
+      "id": "render-free",
+      "provider": "Render",
+      "name": "Render Web Service",
+      "category": "hosting",
+      "initials": "RE",
+      "accent": "#5960b7",
+      "summary": "托管账户已注册，Web Service 部署与可用额度待验收。",
+      "officialUrl": "https://render.com/docs/free",
+      "configuration": [
+        {
+          "label": "公开月额度",
+          "value": "750 实例小时 / 工作区"
+        },
+        {
+          "label": "服务类型",
+          "value": "Web Service"
+        },
+        {
+          "label": "部署状态",
+          "value": "待验收"
+        }
+      ],
+      "claimStatus": "registered",
+      "claimLabel": "待接入",
+      "recordedAt": "2026-11-23",
+      "evidenceType": "user-confirmed",
+      "evidenceLabel": "用户确认注册",
+      "availability": "awaiting-setup",
+      "availabilityLabel": "待接入验收",
+      "consoleUrl": "https://dashboard.render.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "cloudflare-workers-ai",
+      "provider": "Cloudflare",
+      "name": "Cloudflare Workers AI",
+      "category": "ai",
+      "initials": "AI",
+      "accent": "#e27419",
+      "summary": "AI 服务接入已登记，实际推理与账户余量待核验。",
+      "officialUrl": "https://developers.cloudflare.com/workers-ai/",
+      "configuration": [
+        {
+          "label": "公开日额度",
+          "value": "10,000 Neurons"
+        },
+        {
+          "label": "服务类型",
+          "value": "模型推理"
+        },
+        {
+          "label": "当前余量",
+          "value": "待核验"
+        }
+      ],
+      "claimStatus": "registered",
+      "claimLabel": "待接入",
+      "recordedAt": "2026-11-23",
+      "evidenceType": "user-confirmed",
+      "evidenceLabel": "用户确认注册",
+      "availability": "awaiting-setup",
+      "availabilityLabel": "待接入验收",
+      "consoleUrl": "https://dash.cloudflare.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "upstash-redis-free",
+      "provider": "Upstash",
+      "name": "Upstash Redis",
+      "category": "storage",
+      "initials": "UP",
+      "accent": "#1a9b70",
+      "summary": "Redis 服务已登记，数据库与实际读写待接入验收。",
+      "officialUrl": "https://upstash.com/pricing/redis",
+      "configuration": [
+        {
+          "label": "公开存储额度",
+          "value": "250 MB"
+        },
+        {
+          "label": "命令额度",
+          "value": "50 万次 / 月"
+        },
+        {
+          "label": "带宽额度",
+          "value": "10 GB / 月"
+        }
+      ],
+      "claimStatus": "registered",
+      "claimLabel": "待接入",
+      "recordedAt": "2026-11-23",
+      "evidenceType": "user-confirmed",
+      "evidenceLabel": "用户确认注册",
+      "availability": "awaiting-setup",
+      "availabilityLabel": "待接入验收",
+      "consoleUrl": "https://console.upstash.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "groq-free",
+      "provider": "Groq",
+      "name": "Groq 推理 API",
+      "category": "ai",
+      "initials": "GQ",
+      "accent": "#d96840",
+      "summary": "推理 API 接入已登记，模型调用与账户限额待核验。",
+      "officialUrl": "https://console.groq.com/docs/rate-limits",
+      "configuration": [
+        {
+          "label": "额度方式",
+          "value": "按模型分别限流"
+        },
+        {
+          "label": "周期",
+          "value": "分钟与日限额"
+        },
+        {
+          "label": "实际可用量",
+          "value": "待核验"
+        }
+      ],
+      "claimStatus": "registered",
+      "claimLabel": "待接入",
+      "recordedAt": "2026-11-23",
+      "evidenceType": "user-confirmed",
+      "evidenceLabel": "用户确认注册",
+      "availability": "awaiting-setup",
+      "availabilityLabel": "待接入验收",
+      "consoleUrl": "https://console.groq.com/",
+      "consoleLabel": "打开控制台"
+    },
+    {
+      "id": "turso-free",
+      "provider": "Turso",
+      "name": "Turso",
+      "category": "storage",
+      "initials": "TU",
+      "accent": "#338b7e",
+      "summary": "数据库服务已登记，连接与实际查询待接入验收。",
+      "officialUrl": "https://turso.tech/pricing",
+      "configuration": [
+        {
+          "label": "公开数据库数",
+          "value": "100 个"
+        },
+        {
+          "label": "总存储额度",
+          "value": "5 GB"
+        },
+        {
+          "label": "读取额度",
+          "value": "5 亿行 / 月"
+        },
+        {
+          "label": "写入额度",
+          "value": "1,000 万行 / 月"
+        }
+      ],
+      "claimStatus": "registered",
+      "claimLabel": "待接入",
+      "recordedAt": "2026-11-23",
+      "evidenceType": "user-confirmed",
+      "evidenceLabel": "用户确认注册",
+      "availability": "awaiting-setup",
+      "availabilityLabel": "待接入验收",
+      "consoleUrl": "https://app.turso.tech/",
+      "consoleLabel": "打开控制台"
+    }
+  ]
+}
