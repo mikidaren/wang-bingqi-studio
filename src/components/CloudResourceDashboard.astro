@@ -2,9 +2,6 @@
 import '../styles/cloud-resources.css';
 import ResourceMetric from './ResourceMetric.astro';
 
-type ClaimStatus = 'claimed' | 'registered';
-type Availability = 'recorded' | 'historical' | 'restricted' | 'unverified' | 'awaiting-setup';
-
 interface ResourceMetricData {
   key: string;
   label: string;
@@ -21,100 +18,85 @@ interface ResourceMetricData {
   checkedAt?: string;
   note?: string;
 }
-
 interface Resource {
   id: string;
   provider: string;
   name: string;
   category: string;
-  claimStatus: ClaimStatus;
-  claimLabel: string;
-  summary: string;
+  claimStatus: 'claimed' | 'registered';
   initials: string;
   accent: string;
   configuration: { label: string; value: string }[];
   recordedAt: string;
-  evidenceType: 'runtime' | 'user-confirmed' | 'screenshot' | 'account';
-  evidenceLabel: string;
-  availability: Availability;
-  availabilityLabel: string;
+  availability: string;
   officialUrl: string;
   consoleUrl?: string;
   consoleLabel?: string;
   metrics?: ResourceMetricData[];
   usageStatus?: 'observed' | 'stale' | 'unknown';
-  quota?: { label: string; value: string; checkedAt: string; note: string };
 }
-
-interface Dashboard {
-  schemaVersion: number;
-  updatedAt: string;
-  sourceCheckedAt: string;
-  notice: string;
-  summary: { claimed: number; registered: number; total: number };
-  categories: { id: string; label: string }[];
-  resources: Resource[];
-}
-
 interface Props {
-  dashboard: Dashboard;
+  dashboard: {
+    updatedAt: string;
+    categories: { id: string; label: string }[];
+    resources: Resource[];
+  };
   showPosts?: boolean;
 }
-
 const { dashboard, showPosts = false } = Astro.props;
-const categoryNames = Object.fromEntries(dashboard.categories.map(category => [category.id, category.label]));
-const featuredOrder = ['instabox-free', 'kaggle-gpu', 'colab-free', 'google-cloud-shell'];
-const resourceOrder = (resource: Resource) => {
-  if (resource.claimStatus === 'registered') return 100;
-  const featuredIndex = featuredOrder.indexOf(resource.id);
-  if (featuredIndex !== -1) return featuredIndex;
-  if (resource.availability === 'restricted') return 80;
-  if (resource.availability === 'historical') return 81;
-  return 10;
+const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0;
+const visibleMetric = (metric: ResourceMetricData, resource: Resource) => {
+  if (metric.mode === 'unknown' || metric.basis === 'unknown' || !metric.displayValue?.trim()) return false;
+  if (['value', 'used', 'limit', 'remaining', 'percent'].some(key => {
+    const value = metric[key as 'value' | 'used' | 'limit' | 'remaining' | 'percent'];
+    return value !== undefined && !finite(value);
+  })) return false;
+  if (metric.mode === 'capacity') return (finite(metric.value) && metric.value >= 0)
+    || (resource.id === 'colab-free' && metric.kind === 'gpu' && metric.value === undefined);
+  if (metric.mode === 'balance') return finite(metric.remaining);
+  if (metric.mode === 'usage') return finite(metric.used);
+  return false;
 };
-const resources = dashboard.resources.map((resource, index) => ({ resource, index }))
-  .sort((a, b) => resourceOrder(a.resource) - resourceOrder(b.resource) || a.index - b.index)
-  .map(({ resource }) => resource);
-const claimedCount = (category?: string) => dashboard.resources.filter(resource =>
-  resource.claimStatus === 'claimed' && (!category || resource.category === category)
-).length;
-const displayDate = (date: string) => date.slice(0, 10).replaceAll('-', '.');
-const displayObservationTime = (date: string) => new Intl.DateTimeFormat('zh-CN', {
-  timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit',
-  hour: '2-digit', minute: '2-digit', hour12: false,
-}).format(new Date(date)).replaceAll('/', '.');
-const configurationIcon = (label: string) => {
-  if (/GPU|显卡|加速/i.test(label)) return 'gpu';
-  if (/CPU|核|算力/i.test(label)) return 'cpu';
-  if (/内存|RAM/i.test(label)) return 'memory';
-  if (/存储|磁盘|容量|数据库/i.test(label)) return 'database';
-  if (/模型|AI|推理/i.test(label)) return 'spark';
-  if (/网络|流量|带宽|域名/i.test(label)) return 'globe';
-  if (/期限|时间|有效|到期|时长/i.test(label)) return 'clock';
-  if (/环境|运行|系统|部署/i.test(label)) return 'code';
-  return 'box';
+const resourceMetrics = (resource: Resource): ResourceMetricData[] => {
+  const metrics = [...(resource.metrics || [])];
+  const gpuMemory = resource.configuration.find(item => item.label.includes('显存') && item.value === '16 GB / 张');
+  if (resource.id === 'kaggle-gpu' && gpuMemory && !metrics.some(metric => metric.key === 'gpu_memory')) {
+    metrics.push({ key: 'gpu_memory', label: '单卡显存', kind: 'memory', mode: 'capacity', displayValue: gpuMemory.value, value: 16, unit: 'GB / GPU', basis: 'recorded-config' });
+  }
+  const shellHours = resource.configuration.find(item => item.label === '方案时长' && item.value === '50 小时 / 周');
+  if (resource.id === 'google-cloud-shell' && shellHours && !metrics.some(metric => metric.key === 'weekly_hours')) {
+    metrics.push({ key: 'weekly_hours', label: '每周时长', kind: 'runtime', mode: 'capacity', displayValue: shellHours.value, value: 50, unit: 'hours / week', basis: 'plan-limit' });
+  }
+  return metrics.filter(metric => visibleMetric(metric, resource));
 };
-const availabilityIcon = (availability: Availability) => ({
-  recorded: 'check-circle',
-  historical: 'clock',
-  restricted: 'lock',
-  unverified: 'info',
-  'awaiting-setup': 'clock',
-}[availability] || 'info');
-const availabilityLabel = (resource: Resource) => resource.availabilityLabel || ({
-  recorded: '已有使用记录',
-  historical: '历史记录',
-  restricted: '使用受限',
-  unverified: '状态待确认',
-  'awaiting-setup': '等待接入',
-}[resource.availability] || '状态待确认');
-const searchText = (resource: Resource) => [
-  resource.provider, resource.name, resource.summary,
-  categoryNames[resource.category] || resource.category,
-  ...resource.configuration.flatMap(item => [item.label, item.value]),
-  ...(resource.metrics || []).flatMap(metric => [metric.label, metric.displayValue, metric.unit || '']),
+const featured = ['instabox-free', 'kaggle-gpu', 'colab-free', 'google-cloud-shell'];
+const order = (id: string) => featured.includes(id) ? featured.indexOf(id) : featured.length;
+const resources = dashboard.resources
+  .filter(resource => resource.claimStatus === 'claimed' && !['historical', 'restricted'].includes(resource.availability))
+  .map(resource => ({ ...resource, metrics: resourceMetrics(resource) }))
+  .filter(resource => resource.metrics.length > 0)
+  .sort((a, b) => order(a.id) - order(b.id));
+const categories = dashboard.categories.filter(category => resources.some(resource => resource.category === category.id));
+const countForCategory = (category: string) => resources.filter(resource => resource.category === category).length;
+const purposes: Record<string, string> = {
+  'instabox-free': '云开发环境', 'kaggle-gpu': 'GPU 笔记本', 'colab-free': '按会话分配的 AI 笔记本',
+  'google-cloud-shell': '云端开发终端', 'cloudflare-workers': '边缘函数', 'cloudflare-pages': '静态网站托管',
+  'cloudflare-kv': '键值存储', 'cloudflare-r2-webdav': '对象存储', 'cloudflare-browser-run': '云端浏览器',
+  'browserless-free': '浏览器自动化', 'cloudflare-d1': 'SQL 数据库', 'firecrawl-free': '网页采集',
+};
+const searchText = (resource: Resource & { metrics: ResourceMetricData[] }) => [
+  resource.name, resource.provider, purposes[resource.id] || '',
+  ...resource.metrics.flatMap(metric => [metric.mode === 'balance' ? '剩余额度' : metric.key === 'plan_credits' ? '账期额度' : metric.label, metric.displayValue]),
 ].join(' ').normalize('NFKC').toLocaleLowerCase();
-const primaryLinkLabel = (resource: Resource) => resource.consoleUrl ? (resource.consoleLabel || '打开控制台') : '查看说明';
+const displayDate = (date: string) => date.slice(0, 10).replaceAll('-', '.');
+const observationTime = (date: string) => new Intl.DateTimeFormat('zh-CN', {
+  timeZone: 'Asia/Shanghai', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false,
+}).format(new Date(date)).replaceAll('/', '.');
+const recordedTime = (resource: Resource & { metrics: ResourceMetricData[] }) => {
+  const observed = resource.metrics.find(metric => metric.basis === 'observed' && metric.checkedAt)?.checkedAt;
+  return observed ? { value: observed, label: observationTime(observed), title: '北京时间' }
+    : { value: resource.recordedAt, label: displayDate(resource.recordedAt), title: undefined };
+};
 ---
 
 <div class="cloud-dashboard" data-cloud-dashboard>
@@ -141,171 +123,60 @@ const primaryLinkLabel = (resource: Resource) => resource.consoleUrl ? (resource
       <symbol id="cloud-icon-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" /><path d="M3 11h18" /></symbol>
     </defs>
   </svg>
-
   <div class="cloud-shell">
-    <div class="cloud-topbar">
-      <a class="cloud-studio-link" href="/" aria-label="返回 Studio 首页">
-        <span class="cloud-back-icon"><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-arrow-left" /></svg></span>
-        <span>Studio</span>
-      </a>
-      <nav class="cloud-site-nav" aria-label="Studio 导航">
-        <a href="/category/project">Projects</a>
+    <header class="cloud-topbar">
+      <a class="cloud-brand" href="https://miki2022.eu.org/">WANG BINGQI</a>
+      <nav class="cloud-site-nav" aria-label="网站导航">
+        <a href="/">Studio</a>
         <a href="/category/process" aria-current="page">Process</a>
       </nav>
-    </div>
+    </header>
 
     <main class="cloud-main" id="cloud-resources">
-      <header class="cloud-intro">
-        <div class="cloud-title-block">
-          <div class="cloud-eyebrow"><span aria-hidden="true"></span> MY RESOURCE COLLECTION</div>
-          <h1>云资源</h1>
-          <p class="cloud-subtitle">把领到的资源，用起来。</p>
-        </div>
-        <dl class="cloud-summary" aria-label="资源清单摘要">
-          <div class="cloud-summary-item cloud-summary-item--claimed"><dt>已领取</dt><dd>{dashboard.summary.claimed}<span>项</span></dd></div>
-          <div class="cloud-summary-item"><dt>待接入</dt><dd>{dashboard.summary.registered}<span>项</span></dd></div>
-          <div class="cloud-summary-item"><dt>资源分类</dt><dd>{dashboard.categories.length}<span>类</span></dd></div>
-        </dl>
-      </header>
-
-      <details class="cloud-notice">
-        <summary class="cloud-notice-summary">
-          <svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-info" /></svg>
-          <span class="cloud-notice-label">台账快照</span>
-          <span class="cloud-notice-divider" aria-hidden="true">·</span>
-          <span class="cloud-updated">更新于 <time datetime={dashboard.updatedAt}>{displayDate(dashboard.updatedAt)}</time></span>
-          <span class="cloud-notice-toggle"><span class="cloud-notice-closed-label">展开说明</span><span class="cloud-notice-open-label">收起说明</span><svg class="cloud-icon cloud-notice-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5" /></svg></span>
-        </summary>
-        <p class="cloud-notice-body">{dashboard.notice || '这里记录已领取与待接入的资源，运行状态及剩余额度以官方控制台为准。'}</p>
-      </details>
+      <div class="cloud-page-heading">
+        <h1>云资源 <span class="cloud-result-count" data-result-count role="status" aria-live="polite" aria-atomic="true" aria-label={`${resources.length} 项资源`}>{resources.length}</span></h1>
+      </div>
 
       <section class="cloud-resource-section" aria-label="资源清单">
-        <div class="cloud-filter-dock">
         <div class="cloud-category-list" role="group" aria-label="按资源类别筛选">
-          <button type="button" class="cloud-category-button" data-category-filter="all" data-category-label="全部资源" aria-pressed="true" disabled>
-            <span>全部资源</span><span class="cloud-category-count" data-category-count>{claimedCount()}</span>
-          </button>
-          {dashboard.categories.map(category => (
-            <button type="button" class="cloud-category-button" data-category-filter={category.id} data-category-label={category.label} aria-pressed="false" disabled>
-              <span>{category.label}</span><span class="cloud-category-count" data-category-count>{claimedCount(category.id)}</span>
-            </button>
-          ))}
+          <button type="button" class="cloud-category-button" data-category-filter="all" data-category-label="全部" aria-pressed="true" disabled><span>全部</span><span class="cloud-category-count" data-category-count>{resources.length}</span></button>
+          {categories.map(category => <button type="button" class="cloud-category-button" data-category-filter={category.id} data-category-label={category.label} aria-pressed="false" disabled><span>{category.label}</span><span class="cloud-category-count" data-category-count>{countForCategory(category.id)}</span></button>)}
         </div>
-
         <div class="cloud-toolbar">
-          <div class="cloud-status-switch" role="group" aria-label="按领取状态筛选">
-            <button type="button" data-status-filter="claimed" aria-pressed="true" disabled>已领取 <span>{dashboard.summary.claimed}</span></button>
-            <button type="button" data-status-filter="registered" aria-pressed="false" disabled>待接入 <span>{dashboard.summary.registered}</span></button>
-            <button type="button" data-status-filter="all" aria-pressed="false" disabled>全部 <span>{dashboard.summary.total}</span></button>
-          </div>
           <div class="cloud-search">
             <svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-search" /></svg>
-            <input type="search" name="resource-search" aria-label="搜索资源名称、配置或用途" placeholder="搜索名称、配置或用途…" autocomplete="off" spellcheck="false" data-search-input disabled />
+            <input type="search" name="resource-search" aria-label="搜索资源名称或配置" placeholder="搜索资源、配置…" autocomplete="off" spellcheck="false" data-search-input disabled />
             <button type="button" class="cloud-clear-search" data-clear-search aria-label="清除搜索" hidden><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-close" /></svg></button>
           </div>
+          <button type="button" class="cloud-reset-button" data-reset-filters hidden><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-reset" /></svg>重置</button>
         </div>
-        </div>
-
-        <div class="cloud-list-heading">
-          <div class="cloud-results-label">
-            <h2 data-results-heading>已领取资源</h2>
-            <span class="cloud-result-count" data-result-count role="status" aria-live="polite" aria-atomic="true">{claimedCount()} 项</span>
-          </div>
-          <button type="button" class="cloud-reset-button" data-reset-filters hidden><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-reset" /></svg>重置筛选</button>
-          <span class="cloud-list-caption" data-list-caption>容量与用量，分开记录</span>
-        </div>
-
-        <noscript><p class="cloud-noscript">筛选功能需要启用 JavaScript。下方已展示全部已领取资源，可直接使用卡片中的官方入口与方案说明。</p></noscript>
 
         <div class="cloud-resource-grid" data-resource-grid>
-          {resources.map(resource => (
-            <article
-              class="cloud-resource-card"
-              data-resource-card
-              data-category={resource.category}
-              data-claim-status={resource.claimStatus}
-              data-search={searchText(resource)}
-              style={`--resource-accent: ${resource.accent}`}
-              hidden={resource.claimStatus !== 'claimed'}
-              aria-labelledby={`resource-title-${resource.id}`}
-            >
+          {resources.map(resource => {
+            const time = recordedTime(resource);
+            const linkLabel = resource.consoleUrl ? (resource.consoleLabel || '打开控制台') : '查看说明';
+            return <article class="cloud-resource-card" data-resource-card data-category={resource.category} data-search={searchText(resource)} style={`--resource-accent: ${resource.id === 'instabox-free' ? '#ee690b' : resource.accent}`} aria-labelledby={`resource-title-${resource.id}`}>
               <div class="cloud-card-main">
                 <div class="cloud-card-header">
-                  <div class="cloud-provider-icon" aria-hidden="true">{resource.initials}</div>
+                  <div class="cloud-provider-icon" aria-hidden="true">{resource.id === 'instabox-free' ? 'I' : resource.initials}</div>
                   <div class="cloud-card-identity">
-                    <div class="cloud-card-title-row">
-                      <h3 id={`resource-title-${resource.id}`}>{resource.name}</h3>
-                      <span class={`cloud-claim-badge cloud-claim-badge--${resource.claimStatus}`}>
-                        <svg class="cloud-icon" aria-hidden="true"><use href={resource.claimStatus === 'claimed' ? '#cloud-icon-check' : '#cloud-icon-clock'} /></svg>
-                        {resource.claimLabel || (resource.claimStatus === 'claimed' ? '已领取' : '待接入')}
-                      </span>
-                    </div>
-                    <div class="cloud-provider-meta"><span class="cloud-provider-name">{resource.provider}</span><span class="cloud-meta-divider" aria-hidden="true">·</span><span>{categoryNames[resource.category] || resource.category}</span></div>
+                    <div class="cloud-card-title-row"><h2 id={`resource-title-${resource.id}`}>{resource.name}</h2><span class="cloud-claim-badge"><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-check" /></svg>已领取</span></div>
+                    <div class="cloud-provider-meta"><span class="cloud-provider-name">{resource.provider}</span>{purposes[resource.id] && <span class="cloud-card-purpose">{purposes[resource.id]}</span>}</div>
                   </div>
                 </div>
-                <p class="cloud-card-description">{resource.summary}</p>
-
-                {resource.metrics && resource.metrics.length > 0 && (
-                  <section class="cloud-metrics-section" aria-label={`${resource.name}的配置与用量`}>
-                    <div class="cloud-metrics-heading"><h4>配置与用量</h4><span class={`cloud-usage-state cloud-usage-state--${resource.usageStatus || 'unknown'}`}><svg class="cloud-icon" aria-hidden="true"><use href={resource.usageStatus === 'observed' ? '#cloud-icon-check-circle' : '#cloud-icon-clock'} /></svg>{resource.usageStatus === 'observed' ? '已有账户快照' : resource.usageStatus === 'stale' ? '历史账户快照' : '已用量待接入'}</span></div>
-                    <div class="cloud-metric-grid">{resource.metrics.map(metric => <ResourceMetric metric={metric} resourceId={resource.id} usageStatus={resource.usageStatus} />)}</div>
-                  </section>
-                )}
-
-                {resource.metrics && resource.metrics.length > 0 && resource.configuration.length > 0 ? (
-                  <details class="cloud-spec-details">
-                    <summary>配置与方案说明<svg class="cloud-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5" /></svg></summary>
-                    <dl class="cloud-configuration">{resource.configuration.map(item => <div class="cloud-configuration-item"><dt><svg class="cloud-icon" aria-hidden="true"><use href={`#cloud-icon-${configurationIcon(item.label)}`} /></svg><span>{item.label}</span></dt><dd>{item.value || '未记录'}</dd></div>)}</dl>
-                  </details>
-                ) : resource.configuration.length > 0 ? (
-                  <dl class="cloud-configuration">
-                    {resource.configuration.map(item => (
-                      <div class="cloud-configuration-item">
-                        <dt><svg class="cloud-icon" aria-hidden="true"><use href={`#cloud-icon-${configurationIcon(item.label)}`} /></svg><span>{item.label}</span></dt>
-                        <dd>{item.value || '未记录'}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                ) : (
-                  <div class="cloud-configuration-empty"><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-box" /></svg>配置尚未记录</div>
-                )}
-
-                <div class={`cloud-record cloud-record--${resource.availability}`}>
-                  <svg class="cloud-icon" aria-hidden="true"><use href={`#cloud-icon-${availabilityIcon(resource.availability)}`} /></svg>
-                  <div><p class="cloud-availability-label">{availabilityLabel(resource)}</p><p class="cloud-record-evidence">{resource.evidenceLabel}</p></div>
-                  {resource.consoleUrl && resource.consoleUrl !== resource.officialUrl && <a class="cloud-reference-link" href={resource.officialUrl} target="_blank" rel="noopener noreferrer" aria-label={`${resource.name}：查看官方方案说明（新标签页）`}>方案说明<svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-arrow-up-right" /></svg></a>}
-                </div>
-
-                {resource.quota && !resource.metrics?.length && (
-                  <div class="cloud-quota-record">
-                    <p><span>{resource.quota.label}</span><strong>{resource.quota.value}</strong></p>
-                    <p class="cloud-quota-note"><time datetime={resource.quota.checkedAt}>{displayObservationTime(resource.quota.checkedAt)}</time>（北京时间）记录{resource.quota.note && ` · ${resource.quota.note}`}</p>
-                  </div>
-                )}
+                <div class="cloud-metric-grid">{resource.metrics.map(metric => <ResourceMetric metric={metric} resourceId={resource.id} usageStatus={resource.usageStatus} />)}</div>
+                {resource.id === 'cloudflare-r2-webdav' && <p class="cloud-card-footnote">超出包含额度可能计费</p>}
               </div>
-              <div class="cloud-card-footer">
-                <span class="cloud-record-date">记录于 <time datetime={resource.recordedAt}>{displayDate(resource.recordedAt)}</time></span>
-                <a class="cloud-console-link" href={resource.consoleUrl || resource.officialUrl} target="_blank" rel="noopener noreferrer" aria-label={`${resource.name}：${primaryLinkLabel(resource)}（新标签页）`}>{primaryLinkLabel(resource)}<svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-arrow-up-right" /></svg></a>
-              </div>
-            </article>
-          ))}
+              <div class="cloud-card-footer"><span class="cloud-record-date">记录于 <time datetime={time.value} title={time.title}>{time.label}</time></span><a class="cloud-console-link" href={resource.consoleUrl || resource.officialUrl} target="_blank" rel="noopener noreferrer" aria-label={`${resource.name}：${linkLabel}（新标签页）`}>{linkLabel}<svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-arrow-up-right" /></svg></a></div>
+            </article>;
+          })}
         </div>
-
-        <div class="cloud-empty-state" data-empty-state hidden>
-          <span class="cloud-empty-icon"><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-search" /></svg></span>
-          <h3>没有找到匹配的资源</h3>
-          <p>换个关键词，或重置筛选查看已领取的资源。</p>
-          <button type="button" class="cloud-empty-reset" data-reset-filters>重置筛选</button>
-        </div>
+        <div class="cloud-empty-state" data-empty-state hidden><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-search" /></svg><h2>没有匹配的资源</h2><button type="button" class="cloud-empty-reset" data-reset-filters>重置筛选</button></div>
       </section>
-
       {showPosts && Astro.slots.has('posts') && <section class="cloud-posts"><slot name="posts" /></section>}
     </main>
 
-    <footer class="cloud-page-footer">
-      <p><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-folder" /></svg>个人资源清单<span aria-hidden="true">·</span>共收录 {dashboard.summary.total} 项</p>
-      <a href="/">WANG Bingqi · Studio<svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-arrow-up-right" /></svg></a>
-    </footer>
+    <footer class="cloud-page-footer"><p>{resources.length} 项资源<span aria-hidden="true">·</span>{categories.length} 类</p><a href="/">Studio<svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-arrow-up-right" /></svg></a></footer>
   </div>
 </div>
 
@@ -313,68 +184,37 @@ const primaryLinkLabel = (resource: Resource) => resource.consoleUrl ? (resource
   function initializeCloudDashboard() {
     const root = document.querySelector<HTMLElement>('[data-cloud-dashboard]');
     if (!root || root.dataset.cloudReady === 'true') return;
-
     const cards = Array.from(root.querySelectorAll<HTMLElement>('[data-resource-card]'));
     const categoryButtons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-category-filter]'));
-    const statusButtons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-status-filter]'));
     const searchInput = root.querySelector<HTMLInputElement>('[data-search-input]');
     const clearSearch = root.querySelector<HTMLButtonElement>('[data-clear-search]');
     const resetButtons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-reset-filters]'));
-    const resultsHeading = root.querySelector<HTMLElement>('[data-results-heading]');
     const resultCount = root.querySelector<HTMLElement>('[data-result-count]');
     const emptyState = root.querySelector<HTMLElement>('[data-empty-state]');
-    const listCaption = root.querySelector<HTMLElement>('[data-list-caption]');
-    if (!searchInput || !clearSearch || !resultsHeading || !resultCount || !emptyState) return;
-
+    if (!searchInput || !clearSearch || !resultCount || !emptyState) return;
     let category = 'all';
-    let claimStatus = 'claimed';
-    const statusLabels: Record<string, string> = { claimed: '已领取', registered: '待接入', all: '全部' };
-
     function updateResults() {
-      if (!searchInput || !clearSearch || !resultsHeading || !resultCount || !emptyState) return;
+      if (!searchInput || !clearSearch || !resultCount || !emptyState) return;
       const query = searchInput.value.normalize('NFKC').trim().toLocaleLowerCase();
       const terms = query.split(/\s+/).filter(Boolean);
       let visibleCount = 0;
-
       cards.forEach(card => {
-        const matchesStatus = claimStatus === 'all' || card.dataset.claimStatus === claimStatus;
-        const matchesCategory = category === 'all' || card.dataset.category === category;
-        const matchesSearch = terms.every(term => (card.dataset.search || '').includes(term));
-        const visible = matchesStatus && matchesCategory && matchesSearch;
+        const visible = (category === 'all' || card.dataset.category === category)
+          && terms.every(term => (card.dataset.search || '').includes(term));
         card.hidden = !visible;
         if (visible) visibleCount += 1;
       });
-
       categoryButtons.forEach(button => {
-        const buttonCategory = button.dataset.categoryFilter;
-        const count = cards.filter(card =>
-          (claimStatus === 'all' || card.dataset.claimStatus === claimStatus) &&
-          (buttonCategory === 'all' || card.dataset.category === buttonCategory)
-        ).length;
-        button.setAttribute('aria-pressed', String(buttonCategory === category));
-        button.setAttribute('aria-label', `${button.dataset.categoryLabel}，${count} 项`);
-        const counter = button.querySelector<HTMLElement>('[data-category-count]');
-        if (counter) counter.textContent = String(count);
+        button.setAttribute('aria-pressed', String(button.dataset.categoryFilter === category));
       });
-
-      statusButtons.forEach(button => {
-        button.setAttribute('aria-pressed', String(button.dataset.statusFilter === claimStatus));
-      });
-
-      const selectedCategory = categoryButtons.find(button => button.dataset.categoryFilter === category);
-      resultsHeading.textContent = category === 'all'
-        ? `${statusLabels[claimStatus]}资源`
-        : `${selectedCategory?.dataset.categoryLabel || '资源'} · ${statusLabels[claimStatus]}`;
-      resultCount.textContent = `${visibleCount} 项`;
+      resultCount.textContent = String(visibleCount);
+      resultCount.setAttribute('aria-label', `${visibleCount} 项资源`);
       emptyState.hidden = visibleCount !== 0;
       clearSearch.hidden = searchInput.value.length === 0;
-      const hasFilters = category !== 'all' || claimStatus !== 'claimed' || query.length > 0;
       resetButtons.forEach(button => {
-        if (!button.closest('[data-empty-state]')) button.hidden = !hasFilters;
+        if (!button.closest('[data-empty-state]')) button.hidden = category === 'all' && query.length === 0;
       });
-      if (listCaption) listCaption.hidden = hasFilters;
     }
-
     categoryButtons.forEach(button => {
       button.disabled = false;
       button.addEventListener('click', () => {
@@ -382,15 +222,6 @@ const primaryLinkLabel = (resource: Resource) => resource.consoleUrl ? (resource
         updateResults();
       });
     });
-
-    statusButtons.forEach(button => {
-      button.disabled = false;
-      button.addEventListener('click', () => {
-        claimStatus = button.dataset.statusFilter || 'claimed';
-        updateResults();
-      });
-    });
-
     searchInput.disabled = false;
     searchInput.addEventListener('input', updateResults);
     searchInput.addEventListener('keydown', event => {
@@ -406,16 +237,13 @@ const primaryLinkLabel = (resource: Resource) => resource.consoleUrl ? (resource
     });
     resetButtons.forEach(button => button.addEventListener('click', () => {
       category = 'all';
-      claimStatus = 'claimed';
       searchInput.value = '';
       updateResults();
       searchInput.focus();
     }));
-
     root.dataset.cloudReady = 'true';
     updateResults();
   }
-
   initializeCloudDashboard();
   document.addEventListener('astro:page-load', initializeCloudDashboard);
 </script>
