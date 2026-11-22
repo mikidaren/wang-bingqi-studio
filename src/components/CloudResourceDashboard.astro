@@ -147,11 +147,16 @@ const primaryLinkLabel = (resource: Resource) => resource.consoleUrl ? (resource
         </dl>
       </header>
 
-      <div class="cloud-notice">
-        <svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-info" /></svg>
-        <p>{dashboard.notice || '这里记录已领取与待接入的资源，运行状态及剩余额度以官方控制台为准。'}</p>
-        <span class="cloud-updated">更新于 <time datetime={dashboard.updatedAt}>{displayDate(dashboard.updatedAt)}</time></span>
-      </div>
+      <details class="cloud-notice">
+        <summary class="cloud-notice-summary">
+          <svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-info" /></svg>
+          <span class="cloud-notice-label">台账快照</span>
+          <span class="cloud-notice-divider" aria-hidden="true">·</span>
+          <span class="cloud-updated">更新于 <time datetime={dashboard.updatedAt}>{displayDate(dashboard.updatedAt)}</time></span>
+          <span class="cloud-notice-toggle"><span class="cloud-notice-closed-label">展开说明</span><span class="cloud-notice-open-label">收起说明</span><svg class="cloud-icon cloud-notice-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5" /></svg></span>
+        </summary>
+        <p class="cloud-notice-body">{dashboard.notice || '这里记录已领取与待接入的资源，运行状态及剩余额度以官方控制台为准。'}</p>
+      </details>
 
       <section class="cloud-resource-section" aria-label="资源清单">
         <div class="cloud-category-list" role="group" aria-label="按资源类别筛选">
