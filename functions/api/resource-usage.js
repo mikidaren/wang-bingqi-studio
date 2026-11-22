@@ -1,20 +1,23 @@
 import dashboard from '../../src/data/cloud-resources.json';
 import snapshot from '../../src/data/resource-usage-snapshot.json';
 import { collectUsage } from '../../server/resources/usage.mjs';
+import { isValidMetric, isVisibleResource } from '../../src/lib/resource-metrics.mjs';
 
 const HEADERS = { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' };
 const TTL = 60;
-const visible = new Set(dashboard.resources.filter(resource => resource.claimStatus === 'claimed' && !['historical', 'restricted'].includes(resource.availability)).map(resource => resource.id));
+const visible = new Set(dashboard.resources.filter(resource => {
+  const update = snapshot.resources.find(item => item.id === resource.id);
+  return isVisibleResource({ ...resource, metrics: [...(resource.metrics || []), ...(update?.metrics || [])] });
+}).map(resource => resource.id));
 const finite = value => typeof value === 'number' && Number.isFinite(value) && value >= 0;
-const fields = ['key', 'label', 'kind', 'mode', 'displayValue', 'unit', 'value', 'used', 'limit', 'remaining', 'percent', 'basis', 'checkedAt', 'periodLabel'];
+const fields = ['key', 'label', 'kind', 'mode', 'displayValue', 'unit', 'value', 'used', 'limit', 'remaining', 'percent', 'basis', 'checkedAt', 'periodLabel', 'quotaState', 'referenceLabel'];
 
 export function publicResource(resource) {
   if (!resource || !visible.has(resource.id)) return null;
-  const metrics = (resource.metrics || []).filter(metric => metric.basis === 'observed'
-    && ['usage', 'balance', 'capacity'].includes(metric.mode)
+  const metrics = (resource.metrics || []).filter(metric => ['observed', 'user-confirmed'].includes(metric.basis)
+    && isValidMetric(metric)
     && typeof metric.key === 'string' && /^[a-z0-9_]{1,48}$/.test(metric.key)
     && typeof metric.displayValue === 'string' && metric.displayValue.length > 0
-    && (metric.mode === 'usage' ? finite(metric.used) : metric.mode === 'balance' ? finite(metric.remaining) : finite(metric.value))
     && typeof metric.checkedAt === 'string' && Number.isFinite(Date.parse(metric.checkedAt))
     && ['value', 'used', 'limit', 'remaining', 'percent'].every(key => metric[key] === undefined || finite(metric[key])))
     .map(metric => Object.fromEntries(fields.filter(key => metric[key] !== undefined).map(key => [key, metric[key]])));
@@ -45,7 +48,7 @@ export async function onRequest(context) {
   if (!['GET', 'HEAD'].includes(context.request.method)) return new Response(null, { status: 405, headers: { ...HEADERS, allow: 'GET, HEAD' } });
   if (context.request.method === 'HEAD') return new Response(null, { headers: HEADERS });
   const cache = typeof caches === 'undefined' ? null : caches.default;
-  const cacheKey = new Request(new URL('/api/resource-usage?cache=studio-v1', context.request.url));
+  const cacheKey = new Request(new URL('/api/resource-usage?cache=studio-v2-progress', context.request.url));
   let previous;
   try { previous = await cache?.match(cacheKey).then(response => response?.json()); } catch { /* Cache is optional. */ }
   const now = Date.now();

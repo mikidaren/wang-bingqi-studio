@@ -1,4 +1,5 @@
 ---
+import { finite, getMetricProgress, isValidMetric, metricLabel, metricDisplayValue } from '../lib/resource-metrics.mjs';
 type MetricKind = 'cpu' | 'memory' | 'storage' | 'gpu' | 'quota' | 'runtime' | 'network' | 'concurrency' | 'requests';
 interface ResourceMetricData {
   key: string;
@@ -12,7 +13,10 @@ interface ResourceMetricData {
   limit?: number;
   remaining?: number;
   percent?: number;
-  basis: 'recorded-config' | 'plan-limit' | 'observed' | 'unknown';
+  quotaState?: 'exhausted';
+  referenceLabel?: string;
+  periodLabel?: string;
+  basis: 'recorded-config' | 'plan-limit' | 'observed' | 'user-confirmed' | 'unknown';
   checkedAt?: string;
   note?: string;
 }
@@ -22,37 +26,35 @@ interface Props {
   usageStatus?: 'observed' | 'stale' | 'unknown';
 }
 const { metric, resourceId, usageStatus } = Astro.props;
-const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0;
-const visible = metric.mode !== 'unknown' && metric.basis !== 'unknown' && Boolean(metric.displayValue.trim());
-const formatNumber = (value: number) => new Intl.NumberFormat('zh-CN', value !== 0 && value < 0.01
-  ? { notation: 'scientific', maximumSignificantDigits: 3 } : { maximumFractionDigits: 2 }).format(value);
-const percent = metric.mode === 'usage' && metric.basis === 'observed' && finite(metric.percent) ? metric.percent : null;
-const fill = percent === null ? 0 : Math.min(100, percent);
-const percentText = percent !== null && percent > 0 && percent < 0.1 ? '<0.1' : percent === null ? '' : formatNumber(percent);
+const visible = isValidMetric(metric);
+const progress = getMetricProgress(metric);
 const isCores = metric.kind === 'cpu' && metric.mode === 'capacity' && /^(v?cpu|cores?|核)$/i.test(metric.unit || '');
-const cores = isCores && finite(metric.value) && Number.isInteger(metric.value) ? metric.value : 0;
-const gpus = metric.kind === 'gpu' && metric.mode === 'capacity' && finite(metric.value) && Number.isInteger(metric.value) ? metric.value : 0;
+const cores = isCores && finite(metric.value) && Number.isInteger(metric.value) ? metric.value! : 0;
+const gpus = metric.kind === 'gpu' && metric.mode === 'capacity' && finite(metric.value) && Number.isInteger(metric.value) ? metric.value! : 0;
 const icon = ({ cpu: 'cpu', memory: 'memory', storage: 'database', gpu: 'gpu', quota: 'spark', runtime: 'clock', network: 'globe', concurrency: 'box', requests: 'code' })[metric.kind];
-const label = metric.mode === 'balance' ? '剩余额度' : metric.key === 'plan_credits' ? '账期额度' : metric.label;
+const label = metricLabel(metric);
+const displayValue = metricDisplayValue(metric);
 const titleId = `${resourceId}-metric-${metric.key}`;
-const basis = metric.basis === 'recorded-config' ? '配置记录' : metric.basis === 'plan-limit' ? '方案额度' : usageStatus === 'stale' ? '历史读数' : '账户读数';
-const description = [label, metric.displayValue, basis,
-  finite(metric.used) && `已用 ${String(metric.used)} ${metric.unit || ''}`,
-  finite(metric.limit) && `上限 ${String(metric.limit)} ${metric.unit || ''}`,
-  finite(metric.remaining) && `剩余 ${String(metric.remaining)} ${metric.unit || ''}`,
-  percent !== null && `已用 ${String(percent)}%`, metric.checkedAt && `查询时间 ${metric.checkedAt}`,
+const basis = metric.basis === 'recorded-config' ? '配置记录' : metric.basis === 'plan-limit' ? '方案额度'
+  : metric.basis === 'user-confirmed' ? '用户确认' : usageStatus === 'stale' ? '历史读数' : '账户读数';
+const description = [label, displayValue, basis, progress?.valueText, metric.periodLabel,
+  metric.checkedAt && `${metric.basis === 'user-confirmed' ? '确认' : '查询'}时间 ${metric.checkedAt}`,
 ].filter(Boolean).join('；');
 ---
 {visible && (
-  <div class:list={['cloud-metric', `cloud-metric--${metric.kind}`, `cloud-metric--${metric.mode}`]} data-metric-key={metric.key} data-metric-mode={metric.mode} data-metric-kind={metric.kind} data-metric-basis={metric.basis} data-metric-percent={percent === null ? undefined : String(percent)} role="group" aria-labelledby={titleId} title={description}>
+  <div class:list={['cloud-metric', `cloud-metric--${metric.kind}`, `cloud-metric--${metric.mode}`, { 'cloud-metric--progress': Boolean(progress) }]}
+    data-metric-key={metric.key} data-metric-mode={metric.mode} data-metric-kind={metric.kind} data-metric-basis={metric.basis}
+    data-metric-checked-at={metric.checkedAt} data-metric-percent={progress ? String(progress.percent) : undefined}
+    data-progress-tone={progress?.tone} data-quota-state={metric.quotaState} role="group" aria-labelledby={titleId} title={description}>
     <div class="cloud-metric-top">
       <span class="cloud-metric-label" id={titleId}><svg class="cloud-icon" aria-hidden="true"><use href={`#cloud-icon-${icon}`} /></svg>{label}</span>
-      <strong class:list={['cloud-metric-value', { 'cloud-metric-value--compact': metric.displayValue.length > 16 }]}>{metric.displayValue}</strong>
+      <strong class:list={['cloud-metric-value', { 'cloud-metric-value--compact': displayValue.length > 20 }]}>{displayValue}</strong>
     </div>
-    {percent !== null ? (
-      <div class="cloud-metric-visual" role="img" aria-label={description}>
-        <div class="cloud-usage-bar" aria-hidden="true"><span style={`width:${fill}%`} /></div>
-        <div class="cloud-usage-scale"><span>已用 {percentText}%</span>{finite(metric.remaining) && <span>剩余 {formatNumber(metric.remaining)} {metric.unit}</span>}</div>
+    {progress ? (
+      <div class="cloud-metric-visual">
+        <div class="cloud-usage-bar" role="meter" aria-label={label} aria-valuemin="0" aria-valuemax="100"
+          aria-valuenow={progress.fill} aria-valuetext={progress.valueText}><span style={`width:${progress.fill}%`} /></div>
+        <div class="cloud-usage-scale"><span>{progress.left}</span><span>{progress.right}</span></div>
       </div>
     ) : cores > 0 ? (
       <div class="cloud-metric-visual cloud-core-bars" role="img" aria-label={`${cores} 个 CPU 核心；${basis}`}>
@@ -65,9 +67,8 @@ const description = [label, metric.displayValue, basis,
         {gpus > 4 && <span>+{gpus - 4}</span>}
       </div>
     ) : metric.mode === 'usage' ? (
-      <div class="cloud-usage-scale"><span>已用</span>{finite(metric.remaining) && <span>剩余 {formatNumber(metric.remaining)} {metric.unit}</span>}</div>
-    ) : (
-      <div class="cloud-capacity-line" aria-hidden="true" />
-    )}
+      <div class="cloud-usage-scale"><span>已用</span>{metric.periodLabel && <span>{metric.periodLabel}</span>}</div>
+    ) : null}
+    {progress && metric.periodLabel && <span class="cloud-metric-period">{metric.periodLabel}</span>}
   </div>
 )}

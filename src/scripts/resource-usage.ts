@@ -1,10 +1,10 @@
+import { finite, getMetricProgress, isValidMetric, isRedundantPlanMetric, metricLabel, metricDisplayValue } from '../lib/resource-metrics.mjs';
+
 type Metric = {
   key: string; label: string; kind: string; mode: string; displayValue: string;
-  basis: string; checkedAt?: string; periodLabel?: string;
-  used?: number; limit?: number; remaining?: number; percent?: number; unit?: string;
+  basis: string; checkedAt?: string; periodLabel?: string; quotaState?: string; referenceLabel?: string;
+  value?: number; used?: number; limit?: number; remaining?: number; percent?: number; unit?: string;
 };
-const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0;
-const format = (value: number) => new Intl.NumberFormat('zh-CN', value !== 0 && value < 0.01 ? { notation: 'scientific', maximumSignificantDigits: 3 } : { maximumFractionDigits: 2 }).format(value);
 const icons: Record<string, string> = { cpu: 'cpu', memory: 'memory', storage: 'database', gpu: 'gpu', quota: 'spark', runtime: 'clock', network: 'globe', concurrency: 'box', requests: 'code' };
 const validTime = (value?: string) => Boolean(value && Number.isFinite(Date.parse(value)));
 
@@ -107,47 +107,66 @@ export function startUsageRefresh(root: HTMLElement) {
   }
 
   function renderMetric(resourceId: string, metric: Metric) {
-    if (metric.basis !== 'observed' || !['usage', 'balance', 'capacity'].includes(metric.mode)
-      || !/^[a-z0-9_]{1,48}$/.test(metric.key) || !icons[metric.kind] || !metric.displayValue
-      || !['used', 'limit', 'remaining', 'percent'].every(key => metric[key as 'used' | 'limit' | 'remaining' | 'percent'] === undefined || finite(metric[key as 'used' | 'limit' | 'remaining' | 'percent']))) return null;
+    if (!['observed', 'user-confirmed'].includes(metric.basis) || !isValidMetric(metric)) return null;
     const template = root.querySelector<HTMLTemplateElement>('[data-usage-metric-template]');
     const element = template?.content.firstElementChild?.cloneNode(true) as HTMLElement | undefined;
     if (!element) return null;
-    const label = metric.mode === 'balance' ? '剩余额度' : metric.key === 'plan_credits' ? '账期额度' : metric.label;
+    const label = metricLabel(metric);
+    const displayValue = metricDisplayValue(metric);
+    const progress = getMetricProgress(metric);
     element.classList.add(`cloud-metric--${metric.kind}`, `cloud-metric--${metric.mode}`);
-    Object.assign(element.dataset, { metricKey: metric.key, metricMode: metric.mode, metricKind: metric.kind, metricBasis: 'observed' });
+    Object.assign(element.dataset, { metricKey: metric.key, metricMode: metric.mode, metricKind: metric.kind, metricBasis: metric.basis });
     if (validTime(metric.checkedAt)) element.dataset.metricCheckedAt = metric.checkedAt!;
+    if (metric.quotaState === 'exhausted') element.dataset.quotaState = 'exhausted';
     const labelElement = element.querySelector<HTMLElement>('[data-metric-label]')!;
     labelElement.id = `${resourceId}-metric-${metric.key}`;
     labelElement.textContent = label;
     element.setAttribute('aria-labelledby', labelElement.id);
     element.querySelector('use')!.setAttribute('href', `#cloud-icon-${icons[metric.kind]}`);
     const value = element.querySelector<HTMLElement>('.cloud-metric-value')!;
-    value.textContent = metric.displayValue;
-    if (metric.displayValue.length > 16) value.classList.add('cloud-metric-value--compact');
+    value.textContent = displayValue;
+    if (displayValue.length > 20) value.classList.add('cloud-metric-value--compact');
     const bar = element.querySelector<HTMLElement>('.cloud-usage-bar')!;
     const scale = element.querySelector<HTMLElement>('.cloud-usage-scale')!;
-    if (metric.mode === 'usage' && finite(metric.percent)) {
-      element.dataset.metricPercent = String(metric.percent);
+    if (progress) {
+      element.classList.add('cloud-metric--progress');
+      element.dataset.metricPercent = String(progress.percent);
+      element.dataset.progressTone = progress.tone;
       bar.setAttribute('role', 'meter');
-      bar.setAttribute('aria-label', `${label}：${metric.displayValue}`);
+      bar.setAttribute('aria-label', label);
       bar.setAttribute('aria-valuemin', '0');
       bar.setAttribute('aria-valuemax', '100');
-      bar.setAttribute('aria-valuenow', String(Math.min(100, metric.percent)));
-      bar.setAttribute('aria-valuetext', `已用 ${String(metric.percent)}%`);
-      bar.firstElementChild!.setAttribute('style', `transform:scaleX(${Math.min(100, metric.percent) / 100})`);
-      scale.firstElementChild!.textContent = `已用 ${metric.percent > 0 && metric.percent < 0.1 ? '<0.1' : format(metric.percent)}%`;
-      scale.lastElementChild!.textContent = finite(metric.remaining) ? `剩余 ${format(metric.remaining)} ${metric.unit || ''}` : metric.periodLabel || '';
+      bar.setAttribute('aria-valuenow', String(progress.fill));
+      bar.setAttribute('aria-valuetext', progress.valueText);
+      bar.firstElementChild!.setAttribute('style', `width:${progress.fill}%`);
+      scale.firstElementChild!.textContent = progress.left;
+      scale.lastElementChild!.textContent = progress.right;
     } else {
       bar.hidden = true;
       scale.firstElementChild!.textContent = metric.mode === 'usage' ? '已用' : '';
       scale.lastElementChild!.textContent = metric.periodLabel || '';
       if (!scale.textContent?.trim()) scale.hidden = true;
-      element.querySelector<HTMLElement>('.cloud-capacity-line')!.hidden = metric.mode === 'usage';
+      if (!scale.textContent?.trim()) element.querySelector<HTMLElement>('.cloud-metric-visual')!.hidden = true;
     }
-    if (metric.mode === 'usage' && finite(metric.percent)) element.querySelector<HTMLElement>('.cloud-capacity-line')!.hidden = true;
-    element.title = [label, metric.displayValue, metric.periodLabel, validTime(metric.checkedAt) ? `采集于 ${timeFormatter.format(new Date(metric.checkedAt!))}` : ''].filter(Boolean).join('；');
+    if (progress && metric.periodLabel) {
+      const period = document.createElement('span');
+      period.classList.add('cloud-metric-period');
+      period.textContent = metric.periodLabel;
+      element.append(period);
+    }
+    element.title = [label, displayValue, metric.basis === 'user-confirmed' ? '用户确认' : '账户读数', progress?.valueText, metric.periodLabel,
+      validTime(metric.checkedAt) ? `${metric.basis === 'user-confirmed' ? '确认' : '采集'}于 ${timeFormatter.format(new Date(metric.checkedAt!))}` : ''].filter(Boolean).join('；');
     return element;
+  }
+
+  function syncQuotaBadge(card: HTMLElement) {
+    const exhausted = Boolean(card.querySelector('[data-metric-key][data-quota-state="exhausted"]'));
+    const badge = card.querySelector<HTMLElement>('[data-claim-badge]');
+    const label = card.querySelector<HTMLElement>('[data-claim-label]');
+    if (exhausted) card.dataset.quotaState = 'exhausted';
+    else delete card.dataset.quotaState;
+    badge?.classList.toggle('cloud-claim-badge--exhausted', exhausted);
+    if (label) label.textContent = exhausted ? '额度用完' : card.dataset.claimStatus === 'registered' ? '已注册' : '已领取';
   }
 
   async function refresh(manual = false) {
@@ -177,7 +196,12 @@ export function startUsageRefresh(root: HTMLElement) {
           if (date && originalDate) date.replaceChildren(...Array.from(originalDate.cloneNode(true).childNodes));
         }
         let latest = '';
+        let latestBasis = '';
         for (const metric of resource.metrics as Metric[]) {
+          if (isRedundantPlanMetric(metric, resource.metrics)) {
+            grid.querySelector<HTMLElement>(`[data-metric-key="${metric.key}"]`)?.remove();
+            continue;
+          }
           if (resource.id === 'instabox-free') {
             const freshness = ['cpu', 'memory'].includes(metric.key) ? 120_000 : 600_000;
             if (!validTime(metric.checkedAt) || Date.now() - Date.parse(metric.checkedAt!) >= freshness) continue;
@@ -187,7 +211,7 @@ export function startUsageRefresh(root: HTMLElement) {
           if (!element) continue;
           const old = grid.querySelector<HTMLElement>(`[data-metric-key="${metric.key}"]`);
           old ? old.replaceWith(element) : grid.append(element);
-          if (validTime(metric.checkedAt) && (!latest || Date.parse(metric.checkedAt!) > Date.parse(latest))) latest = metric.checkedAt!;
+          if (validTime(metric.checkedAt) && (!latest || Date.parse(metric.checkedAt!) > Date.parse(latest))) { latest = metric.checkedAt!; latestBasis = metric.basis; }
         }
         const stateBadge = card.querySelector<HTMLElement>('[data-resource-state]');
         if (stateBadge) clearState(stateBadge);
@@ -202,8 +226,9 @@ export function startUsageRefresh(root: HTMLElement) {
           time.dateTime = latest;
           time.title = new Date(latest).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
           time.textContent = timeFormatter.format(new Date(latest));
-          date.replaceChildren(document.createTextNode('更新于 '), time);
+          date.replaceChildren(document.createTextNode(latestBasis === 'user-confirmed' ? '确认于 ' : '更新于 '), time);
         }
+        syncQuotaBadge(card);
         updateSearch(card);
       }
       interval = Math.max(60, Number(data.refreshAfterSeconds) || 60) * 1000;

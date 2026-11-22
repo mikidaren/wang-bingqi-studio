@@ -16,7 +16,7 @@
 
 ## 云资源
 
-`src/data/cloud-resources.json` 为已审核的公开台账，导出维护见 [CLOUD_RESOURCES.md](docs/CLOUD_RESOURCES.md)。`src/data/resource-usage-snapshot.json` 保存定时公开读数；`/api/resource-usage` 合并快照及配置完成后的供应商 API 结果，页面每 60 秒检查并支持手动刷新。只有同口径真实已用量与总量才显示进度比例，没有数值的字段不生成格子。
+`src/data/cloud-resources.json` 为已审核的公开台账，导出维护见 [CLOUD_RESOURCES.md](docs/CLOUD_RESOURCES.md)。`src/data/resource-usage-snapshot.json` 保存定时公开读数；`/api/resource-usage` 合并快照及配置完成后的供应商 API 结果，页面每 60 秒检查并支持手动刷新。卡片直接显示已用进度或可用余额：耗尽为橙色满条，余额明确标明参考额度。所有者确认的 GitHub Actions 耗尽状态单独记录，不填写未获取的分钟数。没有数值的字段不生成格子。
 
 凭据仅在 Pages Secret 中保存。接入与同步说明见 [RESOURCE_REFRESH.md](docs/RESOURCE_REFRESH.md)。
 
