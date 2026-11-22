@@ -1,8 +1,26 @@
 ---
 import '../styles/cloud-resources.css';
+import ResourceMetric from './ResourceMetric.astro';
 
 type ClaimStatus = 'claimed' | 'registered';
 type Availability = 'recorded' | 'historical' | 'restricted' | 'unverified' | 'awaiting-setup';
+
+interface ResourceMetricData {
+  key: string;
+  label: string;
+  kind: 'cpu' | 'memory' | 'storage' | 'gpu' | 'quota' | 'runtime' | 'network' | 'concurrency' | 'requests';
+  mode: 'capacity' | 'usage' | 'balance' | 'unknown';
+  displayValue: string;
+  unit?: string;
+  value?: number;
+  used?: number;
+  limit?: number;
+  remaining?: number;
+  percent?: number;
+  basis: 'recorded-config' | 'plan-limit' | 'observed' | 'unknown';
+  checkedAt?: string;
+  note?: string;
+}
 
 interface Resource {
   id: string;
@@ -23,6 +41,8 @@ interface Resource {
   officialUrl: string;
   consoleUrl?: string;
   consoleLabel?: string;
+  metrics?: ResourceMetricData[];
+  usageStatus?: 'observed' | 'stale' | 'unknown';
   quota?: { label: string; value: string; checkedAt: string; note: string };
 }
 
@@ -92,6 +112,7 @@ const searchText = (resource: Resource) => [
   resource.provider, resource.name, resource.summary,
   categoryNames[resource.category] || resource.category,
   ...resource.configuration.flatMap(item => [item.label, item.value]),
+  ...(resource.metrics || []).flatMap(metric => [metric.label, metric.displayValue, metric.unit || '']),
 ].join(' ').normalize('NFKC').toLocaleLowerCase();
 const primaryLinkLabel = (resource: Resource) => resource.consoleUrl ? (resource.consoleLabel || '打开控制台') : '查看说明';
 ---
@@ -159,6 +180,7 @@ const primaryLinkLabel = (resource: Resource) => resource.consoleUrl ? (resource
       </details>
 
       <section class="cloud-resource-section" aria-label="资源清单">
+        <div class="cloud-filter-dock">
         <div class="cloud-category-list" role="group" aria-label="按资源类别筛选">
           <button type="button" class="cloud-category-button" data-category-filter="all" data-category-label="全部资源" aria-pressed="true" disabled>
             <span>全部资源</span><span class="cloud-category-count" data-category-count>{claimedCount()}</span>
@@ -182,6 +204,7 @@ const primaryLinkLabel = (resource: Resource) => resource.consoleUrl ? (resource
             <button type="button" class="cloud-clear-search" data-clear-search aria-label="清除搜索" hidden><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-close" /></svg></button>
           </div>
         </div>
+        </div>
 
         <div class="cloud-list-heading">
           <div class="cloud-results-label">
@@ -189,7 +212,7 @@ const primaryLinkLabel = (resource: Resource) => resource.consoleUrl ? (resource
             <span class="cloud-result-count" data-result-count role="status" aria-live="polite" aria-atomic="true">{claimedCount()} 项</span>
           </div>
           <button type="button" class="cloud-reset-button" data-reset-filters hidden><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-reset" /></svg>重置筛选</button>
-          <span class="cloud-list-caption" data-list-caption>运行状态以控制台为准</span>
+          <span class="cloud-list-caption" data-list-caption>容量与用量，分开记录</span>
         </div>
 
         <noscript><p class="cloud-noscript">筛选功能需要启用 JavaScript。下方已展示全部已领取资源，可直接使用卡片中的官方入口与方案说明。</p></noscript>
@@ -222,7 +245,19 @@ const primaryLinkLabel = (resource: Resource) => resource.consoleUrl ? (resource
                 </div>
                 <p class="cloud-card-description">{resource.summary}</p>
 
-                {resource.configuration.length > 0 ? (
+                {resource.metrics && resource.metrics.length > 0 && (
+                  <section class="cloud-metrics-section" aria-label={`${resource.name}的配置与用量`}>
+                    <div class="cloud-metrics-heading"><h4>配置与用量</h4><span class={`cloud-usage-state cloud-usage-state--${resource.usageStatus || 'unknown'}`}><svg class="cloud-icon" aria-hidden="true"><use href={resource.usageStatus === 'observed' ? '#cloud-icon-check-circle' : '#cloud-icon-clock'} /></svg>{resource.usageStatus === 'observed' ? '已有账户快照' : resource.usageStatus === 'stale' ? '历史账户快照' : '已用量待接入'}</span></div>
+                    <div class="cloud-metric-grid">{resource.metrics.map(metric => <ResourceMetric metric={metric} resourceId={resource.id} usageStatus={resource.usageStatus} />)}</div>
+                  </section>
+                )}
+
+                {resource.metrics && resource.metrics.length > 0 && resource.configuration.length > 0 ? (
+                  <details class="cloud-spec-details">
+                    <summary>配置与方案说明<svg class="cloud-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5" /></svg></summary>
+                    <dl class="cloud-configuration">{resource.configuration.map(item => <div class="cloud-configuration-item"><dt><svg class="cloud-icon" aria-hidden="true"><use href={`#cloud-icon-${configurationIcon(item.label)}`} /></svg><span>{item.label}</span></dt><dd>{item.value || '未记录'}</dd></div>)}</dl>
+                  </details>
+                ) : resource.configuration.length > 0 ? (
                   <dl class="cloud-configuration">
                     {resource.configuration.map(item => (
                       <div class="cloud-configuration-item">
@@ -241,7 +276,7 @@ const primaryLinkLabel = (resource: Resource) => resource.consoleUrl ? (resource
                   {resource.consoleUrl && resource.consoleUrl !== resource.officialUrl && <a class="cloud-reference-link" href={resource.officialUrl} target="_blank" rel="noopener noreferrer" aria-label={`${resource.name}：查看官方方案说明（新标签页）`}>方案说明<svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-arrow-up-right" /></svg></a>}
                 </div>
 
-                {resource.quota && (
+                {resource.quota && !resource.metrics?.length && (
                   <div class="cloud-quota-record">
                     <p><span>{resource.quota.label}</span><strong>{resource.quota.value}</strong></p>
                     <p class="cloud-quota-note"><time datetime={resource.quota.checkedAt}>{displayObservationTime(resource.quota.checkedAt)}</time>（北京时间）记录{resource.quota.note && ` · ${resource.quota.note}`}</p>

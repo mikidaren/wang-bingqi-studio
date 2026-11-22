@@ -1,0 +1,41 @@
+---
+import CloudResourceDashboard from '../components/CloudResourceDashboard.astro';
+import source from '../data/cloud-resources.json';
+const template = source.resources.find(resource => resource.id === 'instabox-free')!;
+const checkedAt = '2026-11-22T21:53:21Z';
+const testDashboard = {
+  ...source,
+  notice: '测试数据，非真实账户读数。此页面仅用于验证零用量、超额、旧快照和余额图形。',
+  summary: { claimed: 2, registered: 0, total: 2 },
+  resources: [
+    { ...template, id: 'preview-usage', name: '图形边界测试', initials: 'QA',
+      summary: '合成数据：验证 0%、正常比例与超额显示。', usageStatus: 'observed',
+      configuration: [],
+      metrics: [
+        { key: 'cpu', label: 'CPU 占用', kind: 'cpu', mode: 'usage', displayValue: '37.5%', unit: '%', used: 37.5, limit: 100, percent: 37.5, basis: 'observed', checkedAt, note: '仅用于界面验证。' },
+        { key: 'memory', label: '内存', kind: 'memory', mode: 'usage', displayValue: '0 GiB', unit: 'GiB', used: 0, limit: 8, remaining: 8, percent: 0, basis: 'observed', checkedAt, note: '真实零值必须显示 0%。' },
+        { key: 'storage', label: '存储', kind: 'storage', mode: 'usage', displayValue: '25 GiB', unit: 'GiB', used: 25, limit: 20, percent: 125, basis: 'observed', checkedAt, note: '超额数值保留 125%；绘图最多填满。' },
+        { key: 'gpu', label: 'GPU', kind: 'gpu', mode: 'unknown', displayValue: '未观测', basis: 'unknown', note: '未知值不可呈现为零。' },
+      ]
+    },
+    { ...template, id: 'preview-stale', name: '余额与旧快照测试', initials: 'QA',
+      summary: '合成数据：余额、独立额度、极小非零值和失效快照。', usageStatus: 'stale',
+      configuration: [],
+      metrics: [
+        { key: 'credits', label: '额度余额', kind: 'quota', mode: 'balance', displayValue: '1,025 credits', unit: 'credits', remaining: 1025, limit: 1000, basis: 'observed', checkedAt, note: '余额大于额度，不计算百分比。' },
+        { key: 'plan_credits', label: '账期额度', kind: 'quota', mode: 'capacity', displayValue: '1,000 credits', unit: 'credits', value: 1000, basis: 'observed', checkedAt, note: '独立显示的旧额度快照。' },
+        { key: 'tiny', label: '极小已用量', kind: 'quota', mode: 'usage', displayValue: '0.00000001 credits', unit: 'credits', used: 0.00000001, limit: 1000, percent: 0.000000001, basis: 'observed', checkedAt, note: '非零读数不能标成 0%。' },
+        { key: 'unknown', label: '待接入', kind: 'quota', mode: 'unknown', displayValue: '未观测', basis: 'unknown', note: '没有有效读数。' },
+      ]
+    }
+  ]
+};
+---
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>指标边界检查 · 测试数据</title></head>
+<body class="cloud-resources-page">
+  <aside style="padding:12px 24px;background:#263e45;color:#fff;font:14px system-ui">仅限预览：以下为合成测试数据，不代表任何账户实际用量。</aside>
+  <CloudResourceDashboard dashboard={testDashboard} />
+</body>
+</html>

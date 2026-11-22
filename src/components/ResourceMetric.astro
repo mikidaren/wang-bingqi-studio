@@ -1,0 +1,129 @@
+---
+type MetricKind = 'cpu' | 'memory' | 'storage' | 'gpu' | 'quota' | 'runtime' | 'network' | 'concurrency' | 'requests';
+
+interface ResourceMetricData {
+  key: string;
+  label: string;
+  kind: MetricKind;
+  mode: 'capacity' | 'usage' | 'balance' | 'unknown';
+  displayValue: string;
+  unit?: string;
+  value?: number;
+  used?: number;
+  limit?: number;
+  remaining?: number;
+  percent?: number;
+  basis: 'recorded-config' | 'plan-limit' | 'observed' | 'unknown';
+  checkedAt?: string;
+  note?: string;
+}
+
+interface Props {
+  metric: ResourceMetricData;
+  resourceId: string;
+  usageStatus?: 'observed' | 'stale' | 'unknown';
+}
+
+const { metric, resourceId, usageStatus = 'unknown' } = Astro.props;
+const number = (value: number) => value !== 0 && Math.abs(value) < 0.01
+  ? new Intl.NumberFormat('zh-CN', { notation: 'scientific', maximumSignificantDigits: 3 }).format(value)
+  : new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 2 }).format(value);
+const isFiniteNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+const percent = metric.mode === 'usage' && isFiniteNumber(metric.percent) ? metric.percent : null;
+const geometryPercent = percent === null ? 0 : Math.min(100, Math.max(0, percent));
+const percentLabel = percent !== null && percent > 0 && percent < 0.1 ? '<0.1' : percent === null ? '' : number(percent);
+const isHardware = ['cpu', 'memory', 'storage', 'gpu'].includes(metric.kind);
+const isCoreCount = metric.kind === 'cpu' && metric.mode === 'capacity'
+  && /^(v?cpu|cores?|核)$/i.test(metric.unit || '') && isFiniteNumber(metric.value);
+const coreCount = isCoreCount && Number.isInteger(metric.value) ? Math.max(0, metric.value || 0) : 0;
+const gpuCount = metric.kind === 'gpu' && metric.mode === 'capacity'
+  && isFiniteNumber(metric.value) && Number.isInteger(metric.value) ? Math.max(0, metric.value) : 0;
+const displayedCores = Math.min(16, coreCount);
+const displayedGpus = Math.min(4, gpuCount);
+const titleId = `${resourceId}-metric-${metric.key}`;
+const basisLabel = ({
+  'recorded-config': '配置记录', 'plan-limit': '方案上限',
+  observed: usageStatus === 'stale' ? '历史快照' : '账户快照', unknown: '尚未观测',
+})[metric.basis];
+const icon = ({ cpu: 'cpu', memory: 'memory', storage: 'database', gpu: 'gpu', quota: 'spark', runtime: 'clock', network: 'globe', concurrency: 'box', requests: 'code' })[metric.kind];
+const observationTime = (value: string) => {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value.replaceAll('-', '.');
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : new Intl.DateTimeFormat('zh-CN', {
+    timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).format(parsed).replaceAll('/', '.') + '（北京时间）';
+};
+const fullTime = metric.checkedAt ? observationTime(metric.checkedAt) : '';
+const shortTime = fullTime.replace(/^\d{4}\./, '').replace('（北京时间）', '');
+const usageDescription = percent !== null ? `已用 ${String(percent)}%`
+  : metric.mode === 'balance' ? '已记录余额；未推算已用比例'
+  : metric.mode === 'usage' ? '绝对已用量；可比上限未记录'
+  : '实际已用量未观测';
+const accessibleDescription = [metric.label, metric.displayValue, basisLabel, usageDescription,
+  isFiniteNumber(metric.value) && `记录值 ${String(metric.value)} ${metric.unit || ''}`,
+  isFiniteNumber(metric.used) && `已用 ${String(metric.used)} ${metric.unit || ''}`,
+  isFiniteNumber(metric.limit) && `上限 ${String(metric.limit)} ${metric.unit || ''}`,
+  isFiniteNumber(metric.remaining) && `剩余 ${String(metric.remaining)} ${metric.unit || ''}`,
+  fullTime && `观测时间 ${fullTime}`, metric.note].filter(Boolean).join('；');
+const graphCaption = percent !== null ? `已用 ${percentLabel}%`
+  : metric.mode === 'balance' ? '余额快照'
+  : metric.mode === 'usage' ? '已用量 · 未记录可比上限'
+  : metric.mode === 'unknown' ? '配置与用量待核验'
+  : isCoreCount ? `${number(coreCount || metric.value || 0)} 核配置 · 已用待接入`
+  : metric.kind === 'gpu' ? '历史配置 · 已用待接入'
+  : isHardware && metric.basis !== 'plan-limit' ? '容量记录 · 已用待接入'
+  : '额度记录 · 已用待接入';
+const compactValue = metric.displayValue.length > 13;
+const genericNotes = new Set(['历史配置记录；实际占用未观测。', '方案额度记录；账户实际用量未观测。', '暂无可核实的用量读数。']);
+const visibleNote = metric.note && !genericNotes.has(metric.note) ? metric.note : '';
+const unitLabel = metric.unit || ({ quota: '额度', runtime: '时长', network: '流量', concurrency: '并发', requests: '请求', cpu: '计算配额', memory: '内存', storage: '存储', gpu: 'GPU' })[metric.kind];
+---
+
+<div class:list={['cloud-metric', `cloud-metric--${metric.kind}`, `cloud-metric--${metric.mode}`, { 'cloud-metric--percent': percent !== null }]} data-metric-kind={metric.kind} data-metric-mode={metric.mode} data-metric-basis={metric.basis} data-metric-percent={percent !== null ? String(percent) : undefined} role="group" aria-labelledby={titleId}>
+  <div class="cloud-metric-label" id={titleId}><svg class="cloud-icon" aria-hidden="true"><use href={`#cloud-icon-${icon}`} /></svg><span>{metric.label}</span></div>
+  <p class:list={['cloud-metric-value', { 'cloud-metric-value--compact': compactValue, 'cloud-metric-value--unknown': metric.mode === 'unknown' }]}>{metric.displayValue}</p>
+
+  <div class="cloud-metric-visual" role="img" aria-label={accessibleDescription}>
+    {percent !== null ? (
+      isHardware ? (
+        <div class="cloud-usage-bar-figure" aria-hidden="true">
+          <div class="cloud-usage-bar"><span style={`width: ${geometryPercent}%`} /></div>
+          <div class="cloud-usage-scale"><strong>{percentLabel}%</strong><span>{isFiniteNumber(metric.limit) ? `上限 ${number(metric.limit)} ${metric.unit || ''}` : '已用比例'}</span></div>
+        </div>
+      ) : (
+        <div class="cloud-quota-gauge" aria-hidden="true">
+          <div class="cloud-quota-ring">
+            <svg viewBox="0 0 80 80"><circle class="cloud-ring-track" cx="40" cy="40" r="31" />{geometryPercent > 0 && <circle class="cloud-ring-value" cx="40" cy="40" r="31" pathLength="100" stroke-dasharray={`${geometryPercent} ${100 - geometryPercent}`} transform="rotate(-90 40 40)" />}</svg>
+            <strong>{percentLabel}<span>%</span></strong>
+          </div>
+          <div class="cloud-quota-gauge-label"><span>已使用</span>{isFiniteNumber(metric.used) && <strong>{number(metric.used)} <small>{metric.unit}</small></strong>}{isFiniteNumber(metric.limit) && <span>上限 {number(metric.limit)}</span>}</div>
+        </div>
+      )
+    ) : metric.mode === 'balance' ? (
+      <div class="cloud-balance-figure" aria-hidden="true">
+        <svg viewBox="0 0 120 46"><rect class="cloud-hardware-shell" x="22" y="3" width="78" height="33" rx="8" /><rect class="cloud-hardware-face" x="9" y="11" width="92" height="31" rx="8" /><path class="cloud-hardware-line" d="M20 22h24m-24 9h16" /><rect class="cloud-hardware-inset" x="72" y="20" width="37" height="16" rx="6" /><circle class="cloud-hardware-dot" cx="82" cy="28" r="2" /></svg>
+        <span>余额独立记录</span>
+      </div>
+    ) : isCoreCount && coreCount > 0 ? (
+      <div class="cloud-core-cells" aria-hidden="true">{Array.from({ length: displayedCores }, (_, index) => <span class="cloud-core-cell"><i /><small>{String(index + 1).padStart(2, '0')}</small></span>)}{coreCount > displayedCores && <span class="cloud-core-overflow">+{number(coreCount - displayedCores)}</span>}</div>
+    ) : metric.kind === 'memory' ? (
+      <div class="cloud-hardware-figure" aria-hidden="true"><svg viewBox="0 0 160 46"><rect class="cloud-hardware-shell" x="5" y="5" width="150" height="31" rx="6" /><rect class="cloud-hardware-inset" x="18" y="12" width="32" height="16" rx="3" /><rect class="cloud-hardware-inset" x="64" y="12" width="32" height="16" rx="3" /><rect class="cloud-hardware-inset" x="110" y="12" width="32" height="16" rx="3" /><path class="cloud-hardware-line" d="M20 36v5m10-5v5m10-5v5m10-5v5m10-5v5m10-5v5m20-5v5m10-5v5m10-5v5m10-5v5m10-5v5m10-5v5" /></svg></div>
+    ) : metric.kind === 'storage' ? (
+      <div class="cloud-hardware-figure" aria-hidden="true"><svg viewBox="0 0 160 46"><rect class="cloud-hardware-shell" x="7" y="5" width="146" height="36" rx="9" /><circle class="cloud-hardware-inset" cx="31" cy="23" r="10" /><circle class="cloud-hardware-face" cx="31" cy="23" r="3" /><path class="cloud-hardware-line" d="m31 23 8-7m15 3h62m-62 8h42" /><circle class="cloud-hardware-dot" cx="139" cy="23" r="2" /></svg></div>
+    ) : metric.kind === 'gpu' && gpuCount > 0 ? (
+      <div class="cloud-gpu-chips" aria-hidden="true">{Array.from({ length: displayedGpus }, (_, index) => <span class="cloud-gpu-chip"><svg class="cloud-icon"><use href="#cloud-icon-gpu" /></svg><span>{/\bT4\b/.test(metric.displayValue) ? 'T4' : 'GPU'}<small>{String(index + 1).padStart(2, '0')}</small></span></span>)}{gpuCount > displayedGpus && <span class="cloud-core-overflow">+{number(gpuCount - displayedGpus)}</span>}</div>
+    ) : metric.kind === 'gpu' || (metric.kind === 'cpu' && metric.mode === 'unknown') ? (
+      <div class="cloud-hardware-pending" aria-hidden="true"><svg class="cloud-icon"><use href={`#cloud-icon-${metric.kind}`} /></svg><span>{metric.mode === 'unknown' ? '—' : '按会话分配'}</span></div>
+    ) : metric.mode === 'capacity' && isFiniteNumber(metric.value) ? (
+      <div class="cloud-capacity-ruler" aria-hidden="true"><div class="cloud-ruler-ticks">{Array.from({ length: 9 }, (_, index) => <i class:list={{ 'cloud-ruler-major': index === 0 || index === 4 || index === 8 }} />)}</div><div class="cloud-capacity-endpoints"><span>0</span><span>{number(metric.value)} <small>{metric.unit}</small></span></div></div>
+    ) : (
+      <div class="cloud-unmeasured-figure" aria-hidden="true"><svg class="cloud-icon"><use href={`#cloud-icon-${icon}`} /></svg><span>{metric.mode === 'usage' ? unitLabel : '—'}</span><i /></div>
+    )}
+  </div>
+
+  <p class="cloud-metric-caption">{graphCaption}</p>
+  {metric.mode === 'usage' && isFiniteNumber(metric.remaining) && <p class="cloud-metric-remaining">剩余 <strong>{number(metric.remaining)}</strong> {metric.unit}</p>}
+  <div class="cloud-metric-source"><span>{basisLabel}</span>{metric.checkedAt && <time datetime={metric.checkedAt} title={fullTime} aria-label={fullTime}>{shortTime}</time>}</div>
+  {visibleNote && <p class="cloud-metric-note">{visibleNote}</p>}
+</div>

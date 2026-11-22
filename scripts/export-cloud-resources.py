@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Export a small public projection of a private resource ledger.
 
-Only reviewed display profiles, enum mappings, validated dates and an optional
-numeric Firecrawl snapshot can reach the output. Source names, notes, URLs,
+Only reviewed display profiles, enum mappings, validated dates and allowlisted
+numeric usage snapshots can reach the output. Source names, notes, URLs,
 evidence, account fields and arbitrary nested fields are never copied.
 
 Example (all inputs are local files; this script makes no network requests):
@@ -274,6 +274,143 @@ AVAILABILITY = {
 }
 
 
+def unknown_metric(key, label, kind):
+    return {"key": key, "label": label, "kind": kind, "mode": "unknown",
+            "displayValue": "未观测", "basis": "unknown",
+            "note": "暂无可核实的用量读数。"}
+
+
+def capacity_metric(key, label, kind, display_value, value=None, unit=None,
+                    basis="plan-limit", note=None):
+    metric = {"key": key, "label": label, "kind": kind, "mode": "capacity",
+              "displayValue": display_value, "basis": basis,
+              "note": note or ("历史配置记录；实际占用未观测。" if basis == "recorded-config"
+                               else "方案额度记录；账户实际用量未观测。")}
+    if value is not None:
+        metric["value"] = value
+    if unit is not None:
+        metric["unit"] = unit
+    return metric
+
+
+def hardware_metrics(cpu=None, memory=None, storage=None, gpu=None):
+    """Four fixed hardware slots; capacity is never a utilization percentage."""
+    return [deepcopy(value) if value else unknown_metric(key, label, key)
+            for key, label, value in (("cpu", "CPU", cpu), ("memory", "内存", memory),
+                                      ("storage", "存储", storage), ("gpu", "GPU", gpu))]
+
+
+# Public numeric profiles are reviewed alongside DISPLAY. Never parse ledger
+# free text into a metric, and never use a plan value as an observed denominator.
+VISUAL_PROFILES = {
+    "github-actions-compute": hardware_metrics(),
+    "cloudflare-quick-tunnel": [unknown_metric("requests", "请求用量", "requests"),
+                                unknown_metric("traffic", "传输流量", "network")],
+    "kaggle-gpu": hardware_metrics(gpu=capacity_metric(
+        "gpu", "GPU", "gpu", "T4 × 2", 2, "GPU", "recorded-config",
+        "历史运行配置；每张 16 GB 显存，当前分配与占用未观测。")),
+    "colab-free": hardware_metrics(gpu=capacity_metric(
+        "gpu", "GPU / TPU", "gpu", "T4 / TPU v5 lite", basis="recorded-config",
+        note="分别来自历史会话；当前硬件按会话分配。")),
+    "google-cloud-shell": hardware_metrics(storage=capacity_metric(
+        "storage", "HOME 存储", "storage", "5 GB", 5, "GB")),
+    "cloudflare-workers": [
+        capacity_metric("requests", "请求额度", "requests", "100,000 次 / 日", 100000, "requests"),
+        capacity_metric("cpu_time", "CPU 时间", "cpu", "10 ms / 请求", 10, "ms")],
+    "hf-zerogpu": [
+        capacity_metric("gpu_minutes", "GPU 时长", "runtime", "5 分钟 / 日", 5, "minutes"),
+        unknown_metric("gpu", "GPU 配置", "gpu")],
+    "cloudflare-pages": [
+        capacity_metric("builds", "构建额度", "quota", "500 次 / 月", 500, "builds"),
+        unknown_metric("build_usage", "已用构建", "quota")],
+    "cloudflare-kv": [
+        capacity_metric("storage", "存储容量", "storage", "1 GB", 1, "GB"),
+        capacity_metric("reads", "读取额度", "requests", "100,000 次 / 日", 100000, "requests"),
+        capacity_metric("writes", "写入额度", "requests", "1,000 次 / 日", 1000, "requests")],
+    "cloudflare-r2-webdav": [
+        capacity_metric("storage", "包含存储量", "storage", "10 GB-month", 10, "GB-month",
+                        note="按月累计的包含存储量；超额可能计费，实际用量未观测。"),
+        capacity_metric("class_a", "Class A 请求", "requests", "100 万次 / 月", 1000000, "requests"),
+        capacity_metric("class_b", "Class B 请求", "requests", "1,000 万次 / 月", 10000000, "requests")],
+    "cloudflare-browser-run": [
+        capacity_metric("browser_minutes", "浏览器时长", "runtime", "10 分钟 / 日", 10, "minutes"),
+        capacity_metric("concurrency", "并发上限", "concurrency", "3 个浏览器", 3, "browsers")],
+    "browserless-free": [
+        capacity_metric("units", "历史月额度", "quota", "1,000 units", 1000, "units", "recorded-config"),
+        unknown_metric("used_units", "已用额度", "quota")],
+    "anchor-free": [
+        capacity_metric("credits", "历史月额度", "quota", "5 credits", 5, "credits", "recorded-config"),
+        capacity_metric("concurrency", "历史并发上限", "concurrency", "5 个会话", 5, "sessions", "recorded-config")],
+    "cloudflare-d1": [
+        capacity_metric("storage", "总存储容量", "storage", "5 GB", 5, "GB"),
+        capacity_metric("database_storage", "单库容量", "storage", "500 MB", 500, "MB"),
+        capacity_metric("reads", "读取额度", "requests", "500 万行 / 日", 5000000, "rows"),
+        capacity_metric("writes", "写入额度", "requests", "10 万行 / 日", 100000, "rows")],
+    "neon-free": [
+        capacity_metric("compute_hours", "计算额度", "runtime", "100 CU-hours / 月", 100, "CU-hours",
+                        note="公开方案按项目每月计量；账户实际用量未观测。"),
+        capacity_metric("storage", "项目存储", "storage", "1 GB / 项目", 1, "GB")],
+    "railway-anonymous-vm": hardware_metrics(
+        cpu=capacity_metric("cpu", "CPU", "cpu", "2 vCPU", 2, "vCPU", "recorded-config"),
+        memory=capacity_metric("memory", "内存", "memory", "2 GB", 2, "GB", "recorded-config")),
+    "backblaze-b2-free": [
+        capacity_metric("storage", "免费存储容量", "storage", "前 10 GB", 10, "GB"),
+        capacity_metric("egress", "出站额度规则", "network", "月均存储量 × 3",
+                        note="公开出站规则；实际可用流量需结合当月存储量核实。")],
+    "browserbase-free": [
+        capacity_metric("browser_minutes", "浏览器时长", "runtime", "60 分钟 / 月", 60, "minutes"),
+        capacity_metric("fetch_requests", "Fetch 额度", "requests", "1,000 次 / 月", 1000, "requests"),
+        capacity_metric("concurrency", "并发上限", "concurrency", "3 个会话", 3, "sessions"),
+        unknown_metric("proxy_bytes", "代理流量", "network")],
+    "instabox-free": hardware_metrics(
+        cpu=capacity_metric("cpu", "CPU", "cpu", "4 vCPU", 4, "vCPU", "recorded-config"),
+        memory=capacity_metric("memory", "内存", "memory", "8 GiB", 8, "GiB", "recorded-config"),
+        storage=capacity_metric("storage", "存储", "storage", "20 GiB", 20, "GiB", "recorded-config")),
+    "northflank-sandbox": [
+        capacity_metric("services", "服务配额", "quota", "2 个 services", 2, "services"),
+        capacity_metric("jobs", "任务配额", "quota", "2 个 jobs", 2, "jobs"),
+        capacity_metric("databases", "数据库配额", "storage", "1 个 database", 1, "databases")],
+    "zenrows-free": [
+        capacity_metric("plan_credits", "公开月额度", "quota", "5,000 credits", 5000, "credits"),
+        unknown_metric("key_usage", "API Key 用量", "quota")],
+    "apify-free": [
+        capacity_metric("plan_credits", "公开月额度", "quota", "$5", 5, "USD"),
+        unknown_metric("monthly_usage_usd", "账户消费", "quota")],
+    "firecrawl-free": [unknown_metric("credits", "采集额度", "quota"),
+                        unknown_metric("plan_credits", "账期额度", "quota")],
+    "render-free": [
+        capacity_metric("instance_hours", "实例时长", "runtime", "750 小时 / 月", 750, "instance-hours",
+                        note="公开方案按工作区共享计量；实际用量未观测。"),
+        unknown_metric("cpu", "CPU", "cpu"), unknown_metric("memory", "内存", "memory")],
+    "cloudflare-workers-ai": [
+        capacity_metric("neurons", "推理额度", "quota", "10,000 Neurons / 日", 10000, "Neurons"),
+        unknown_metric("used_neurons", "已用额度", "quota")],
+    "upstash-redis-free": [
+        capacity_metric("storage", "存储容量", "storage", "250 MB", 250, "MB"),
+        capacity_metric("commands", "命令额度", "requests", "50 万次 / 月", 500000, "commands"),
+        capacity_metric("bandwidth", "带宽额度", "network", "10 GB / 月", 10, "GB")],
+    "groq-free": [unknown_metric("requests", "请求额度", "requests"),
+                  unknown_metric("tokens", "Token 额度", "quota")],
+    "turso-free": [
+        capacity_metric("databases", "数据库配额", "storage", "100 个", 100, "databases"),
+        capacity_metric("storage", "总存储容量", "storage", "5 GB", 5, "GB"),
+        capacity_metric("reads", "读取额度", "requests", "5 亿行 / 月", 500000000, "rows"),
+        capacity_metric("writes", "写入额度", "requests", "1,000 万行 / 月", 10000000, "rows")],
+}
+
+OBSERVED_SPECS = {
+    "firecrawl-free": {"credits": ("采集额度", "quota", "credits", "账期额度与余额来自账户快照。")},
+    "apify-free": {"monthly_usage_usd": ("账户消费", "quota", "USD",
+                       "按账户消费上限计量；赠送余额未核实。")},
+    "browserbase-free": {
+        "browser_minutes": ("浏览器用量", "runtime", "minutes", "已观测绝对用量；统计周期未知。"),
+        "proxy_bytes": ("代理流量", "network", "bytes", "已观测绝对用量；统计周期未知。"),
+    },
+}
+CAP_WINDOWS = {"day": "每日", "week": "每周", "month": "每月",
+               "billing_period": "账期", "unknown": "周期未知"}
+
+
 class ExportError(ValueError):
     """A deliberately generic error that does not reveal source values."""
 
@@ -316,6 +453,133 @@ def number(value):
     return type(value) in (int, float) and 0 <= value <= 10**15 and math.isfinite(value)
 
 
+def numeric_text(value):
+    if 0 < value < 0.000001:
+        return f"{value:.6g}"
+    return f"{value:,.6f}".rstrip("0").rstrip(".")
+
+
+def measured_text(value, unit):
+    value_text = numeric_text(value)
+    if unit == "USD":
+        return "$" + value_text
+    if unit == "minutes":
+        return value_text + " 分钟"
+    if unit == "bytes":
+        for divider, suffix in ((1024**4, "TiB"), (1024**3, "GiB"),
+                                (1024**2, "MiB"), (1024, "KiB")):
+            if value >= divider:
+                return numeric_text(value / divider) + " " + suffix
+    return value_text + " " + unit
+
+
+def observed_metrics(resource_id, snapshot):
+    """Read one normalized observation, with no joins to public plan limits.
+
+    An unavailable snapshot with accepted auth may retain the last successful
+    observation, as defined by update-resource-usage.py; its time stays intact.
+    Neither successful authentication nor catalog access establishes usage.
+    """
+    if (not isinstance(snapshot, dict) or snapshot.get("auth") != "accepted"
+            or snapshot.get("source") not in {"connected_plugin", "provider_api"}
+            or snapshot.get("status") not in {"observed", "unavailable"}
+            or resource_id not in {*OBSERVED_SPECS, "zenrows-free"}):
+        return [], "unknown"
+    raw_metrics = snapshot.get("metrics", [])
+    if not isinstance(raw_metrics, list):
+        raise ExportError("Invalid usage metrics")
+    checked_at = utc_timestamp(snapshot.get("checkedAtUtc"))
+    stale = snapshot["status"] == "unavailable"
+    results, seen = [], set()
+    for raw in raw_metrics:
+        if not isinstance(raw, dict) or not isinstance(raw.get("key"), str):
+            continue
+        key = raw["key"]
+        spec = OBSERVED_SPECS.get(resource_id, {}).get(key)
+        if resource_id == "zenrows-free":
+            match = re.fullmatch(r"key_cap_(day|week|month|billing_period|unknown)_([1-9]|10)", key)
+            if match:
+                spec = ("API Key 限额 · " + CAP_WINDOWS[match.group(1)], "quota", "credits",
+                        "API Key 的显式额度；不代表完整套餐余额。")
+        if spec is None:
+            continue
+        if key in seen:
+            raise ExportError("Duplicate usage metric")
+        seen.add(key)
+        label, kind, unit, note = spec
+        if raw.get("unit") != unit:
+            continue
+        values = {field: raw[field] for field in ("used", "limit", "remaining")
+                  if number(raw.get(field))}
+        # This endpoint reports absolute counts with no documented plan/cycle.
+        # Ignore injected denominators rather than combining with public plans.
+        if resource_id == "browserbase-free":
+            values = {"used": values["used"]} if "used" in values else {}
+        if not values:
+            continue
+        reset_at = None
+        if raw.get("resetAtUtc") is not None:
+            try:
+                reset_at = utc_timestamp(raw["resetAtUtc"])
+            except ExportError:
+                pass
+        inconsistent = False
+        if "remaining" in values and "limit" in values and values["remaining"] > values["limit"]:
+            values.pop("used", None)
+            note += " 余额高于账期额度；额外额度来源未核实，已用量未推算。"
+            inconsistent = True
+        elif all(field in values for field in ("used", "limit", "remaining")):
+            inconsistent = not math.isclose(values["used"] + values["remaining"], values["limit"],
+                                            rel_tol=1e-8, abs_tol=1e-6)
+            if inconsistent:
+                note += " 用量、余额与额度不一致；不绘制消耗比例。"
+        if "used" in values:
+            mode, value = "usage", values["used"]
+        elif "remaining" in values:
+            mode, value = "balance", values["remaining"]
+        else:
+            mode, value = "capacity", values["limit"]
+        metric = {"key": key, "label": label, "kind": kind, "mode": mode,
+                  "displayValue": measured_text(value, unit), "unit": unit,
+                  **values, "basis": "observed", "checkedAt": checked_at}
+        if mode == "capacity":
+            metric["value"] = value
+        if (not inconsistent and reset_at is not None and "used" in values
+                and values.get("limit", 0) > 0 and resource_id != "browserbase-free"):
+            percentage = values["used"] / values["limit"] * 100
+            if math.isfinite(percentage):
+                metric["percent"] = percentage
+        elif "used" in values and resource_id != "browserbase-free" and not inconsistent:
+            note += " 同周期的完整额度读数尚未取得。"
+        if stale:
+            note = "刷新未取得新用量；保留上次有效观测。 " + note
+        metric["note"] = note
+        if resource_id != "firecrawl-free" or mode != "capacity":
+            results.append(metric)
+        if resource_id == "firecrawl-free" and "limit" in values:
+            plan = capacity_metric("plan_credits", "账期额度", "quota",
+                measured_text(values["limit"], unit), values["limit"], unit, "observed",
+                "同次账户快照中的账期额度；与余额分开显示。")
+            plan["checkedAt"] = checked_at
+            if stale:
+                plan["note"] = "保留上次有效观测。 " + plan["note"]
+            results.append(plan)
+    return results, ("stale" if stale else "observed") if results else "unknown"
+
+
+def resource_metrics(resource_id, snapshot):
+    if resource_id not in VISUAL_PROFILES:
+        raise ExportError("A selected resource needs reviewed visual metrics")
+    defaults = deepcopy(VISUAL_PROFILES[resource_id])
+    observed, status = observed_metrics(resource_id, snapshot)
+    if not observed:
+        return defaults, status
+    keys = {metric["key"] for metric in observed}
+    # Prioritize measured values, retain distinct configuration cards, and keep
+    # the compact 2–4 cell layout. Hardware has no accepted usage source yet.
+    return (observed + [metric for metric in defaults if metric["key"] not in keys])[:4], status
+
+
 def firecrawl_quota(snapshot):
     if not snapshot or snapshot.get("status") != "observed" or snapshot.get("auth") != "accepted":
         return None
@@ -325,10 +589,11 @@ def firecrawl_quota(snapshot):
     if not isinstance(metrics, list):
         raise ExportError("Invalid usage metrics")
     credits = [m for m in metrics if isinstance(m, dict) and m.get("key") == "credits"]
-    if len(credits) != 1 or not number(credits[0].get("remaining")):
+    if (len(credits) != 1 or credits[0].get("unit") != "credits"
+            or not number(credits[0].get("remaining"))):
         return None
     metric = credits[0]
-    value = f"{metric['remaining']:,.6f}".rstrip("0").rstrip(".")
+    value = numeric_text(metric["remaining"])
     note = "历史快照，非当前余额。"
     if number(metric.get("limit")) and metric["remaining"] > metric["limit"]:
         note += "余额高于账期额度，额外额度来源未核实。"
@@ -395,6 +660,7 @@ def export_resources(benefits, catalog, usage, source_checked_at=None):
         }
         if resource_id in CONSOLES:
             card["consoleUrl"], card["consoleLabel"] = CONSOLES[resource_id]
+        card["metrics"], card["usageStatus"] = resource_metrics(resource_id, snapshots.get(resource_id))
         if resource_id == "firecrawl-free":
             quota = firecrawl_quota(snapshots.get(resource_id))
             if quota:
@@ -407,7 +673,7 @@ def export_resources(benefits, catalog, usage, source_checked_at=None):
         "schemaVersion": 1,
         "updatedAt": calendar_date(benefits.get("updated")),
         "sourceCheckedAt": utc_timestamp(now),
-        "notice": "依据领取与注册记录整理。配置和方案额度为记录信息；当前运行状态与账户余额未实时查询。",
+        "notice": "硬件与方案额度按记录展示；用量保留账户快照的观测时间，未观测项不推算。",
         "summary": {"claimed": claimed, "registered": registered, "total": len(resources)},
         "categories": deepcopy(CATEGORIES),
         "resources": resources,
