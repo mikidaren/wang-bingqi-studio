@@ -113,6 +113,7 @@ export function normalizeFirecrawlCurrent(body, { now = new Date() } = {}) {
     key: 'credits', label: '剩余额度', kind: 'quota', mode: 'balance',
     displayValue: `${numberText(body.data.remainingCredits)} credits`, unit: 'credits',
     remaining: body.data.remainingCredits, basis: 'observed', checkedAt,
+    ...(number(body.data.planCredits) ? { limit: body.data.planCredits, referenceLabel: '账期额度' } : {}),
   });
   if (number(body.data.planCredits)) metrics.push({
     key: 'plan_credits', label: '账期额度', kind: 'quota', mode: 'capacity',

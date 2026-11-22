@@ -3,18 +3,20 @@
   "resources": [
     {
       "id": "firecrawl-free",
-      "checkedAt": "2026-11-22T22:42:29Z",
+      "checkedAt": "2026-11-22T23:15:20Z",
       "metrics": [
         {
           "key": "credits",
-          "label": "剩余额度",
+          "label": "采集额度",
           "kind": "quota",
           "mode": "balance",
           "displayValue": "1,025 credits",
           "remaining": 1025,
+          "limit": 1000,
+          "referenceLabel": "账期额度",
           "unit": "credits",
           "basis": "observed",
-          "checkedAt": "2026-11-22T22:42:29Z"
+          "checkedAt": "2026-11-22T23:15:20Z"
         },
         {
           "key": "plan_credits",
@@ -25,7 +27,65 @@
           "value": 1000,
           "unit": "credits",
           "basis": "observed",
-          "checkedAt": "2026-11-22T22:42:29Z"
+          "checkedAt": "2026-11-22T23:15:20Z"
+        }
+      ]
+    },
+    {
+      "id": "github-actions-compute",
+      "checkedAt": "2026-11-22T23:15:20Z",
+      "metrics": [
+        {
+          "key": "actions_quota",
+          "label": "Actions 额度",
+          "kind": "quota",
+          "mode": "usage",
+          "displayValue": "已用完",
+          "percent": 100,
+          "quotaState": "exhausted",
+          "basis": "user-confirmed",
+          "checkedAt": "2026-11-22T23:15:20Z"
+        }
+      ]
+    },
+    {
+      "id": "apify-free",
+      "checkedAt": "2026-11-22T22:02:08.374895Z",
+      "metrics": [
+        {
+          "key": "monthly_usage_usd",
+          "label": "账户消费",
+          "kind": "quota",
+          "mode": "usage",
+          "displayValue": "$0",
+          "unit": "USD",
+          "used": 0,
+          "limit": 5,
+          "remaining": 5,
+          "percent": 0,
+          "basis": "observed",
+          "referenceLabel": "消费上限",
+          "periodLabel": "11.22–12.21 · UTC",
+          "checkedAt": "2026-11-22T22:02:08.374895Z"
+        }
+      ]
+    },
+    {
+      "id": "hf-zerogpu",
+      "checkedAt": "2026-11-22T22:04:21.023917Z",
+      "metrics": [
+        {
+          "key": "gpu_minutes",
+          "label": "GPU 时长",
+          "kind": "runtime",
+          "mode": "balance",
+          "displayValue": "5 分钟",
+          "remaining": 5,
+          "limit": 5,
+          "unit": "minutes",
+          "basis": "observed",
+          "referenceLabel": "个人配额",
+          "checkedAt": "2026-11-22T22:04:21.023917Z"
         }
       ]
     }

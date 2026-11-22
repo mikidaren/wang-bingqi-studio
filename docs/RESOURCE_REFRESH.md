@@ -6,6 +6,10 @@
 
 真实已用量与同口径总量显示进度条；只有绝对数时显示绝对数；只有配置时保留配置。没有数据的字段不出现。失败时保留原读数和采集时间，不改成零。
 
+用量卡片优先显示。GitHub Actions 按所有者在 2026-11-23 的明确确认记录 `basis: user-confirmed`、`quotaState: exhausted`，展示橙色满条，不填写未取得的分钟数。该确认保存在独立快照中，普通接口刷新不会清除，也不会伪装成实时账单读数。
+
+已注册且具有真实用量/余额读数的账户同样显示。Apify 的比例分母为账户消费上限；HF ZeroGPU 显示个人剩余 GPU 时长与个人配额；Firecrawl 显示可用余额相对账期额度，余额超过账期额度时只限制条形宽度，保留完整数字。配置容量不会画成空白用量条。
+
 InstaBox CPU/内存最多保留 120 秒，磁盘最多 10 分钟。暂停时不把历史 CPU 当作当前占用，也不推成 0%。查询监控不启动或恢复实例。
 
 ## 后端配置
@@ -34,6 +38,8 @@ InstaBox CPU/内存最多保留 120 秒，磁盘最多 10 分钟。暂停时不�
 
 连接器失败时保留旧值及旧时间。不得绕过自动审批拒绝而改用私库凭据。提交使用最新 main 和 expected SHA；核实 Cloudflare 构建。正常同步不发聊天提醒，持续失败或确需用户处理时才报告。
 
+同步 Firecrawl 时保留 `credits` 的 `mode: balance`，把同次 `planCredits` 写为 `limit`、`referenceLabel: 账期额度`；不从余额反推已用量。保留快照中的 GitHub 用户确认、HF、Apify 及其原观测时间。数值与账期不变且公开快照不足 24 小时时，不为时间戳单独触发部署。
+
 ## 口径
 
 - CPU 比例由 InstaBox 返回且已按核数归一；内存使用同次 used/total。
@@ -49,3 +55,4 @@ InstaBox CPU/内存最多保留 120 秒，磁盘最多 10 分钟。暂停时不�
 - https://developers.cloudflare.com/workers/observability/metrics-and-analytics/
 - https://developers.cloudflare.com/analytics/graphql-api/
 - https://developers.cloudflare.com/r2/platform/metrics-analytics/
+- https://github.com/huggingface/huggingface_hub/blob/main/src/huggingface_hub/_space_api.py （`ZeroGpuQuota`：`current` 映射为剩余 GPU 秒，`base` 为基础配额）

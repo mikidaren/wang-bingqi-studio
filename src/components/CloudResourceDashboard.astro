@@ -1,6 +1,7 @@
 ---
 import '../styles/cloud-resources.css';
 import ResourceMetric from './ResourceMetric.astro';
+import { finite, confirmedExhausted, getMetricProgress, isValidMetric, isVisibleResource, isRedundantPlanMetric, metricLabel, metricDisplayValue } from '../lib/resource-metrics.mjs';
 
 interface ResourceMetricData {
   key: string;
@@ -14,7 +15,10 @@ interface ResourceMetricData {
   limit?: number;
   remaining?: number;
   percent?: number;
-  basis: 'recorded-config' | 'plan-limit' | 'observed' | 'unknown';
+  basis: 'recorded-config' | 'plan-limit' | 'observed' | 'user-confirmed' | 'unknown';
+  quotaState?: 'exhausted';
+  referenceLabel?: string;
+  periodLabel?: string;
   checkedAt?: string;
   note?: string;
 }
@@ -44,19 +48,6 @@ interface Props {
   showPosts?: boolean;
 }
 const { dashboard, showPosts = false } = Astro.props;
-const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0;
-const visibleMetric = (metric: ResourceMetricData, resource: Resource) => {
-  if (metric.mode === 'unknown' || metric.basis === 'unknown' || !metric.displayValue?.trim()) return false;
-  if (['value', 'used', 'limit', 'remaining', 'percent'].some(key => {
-    const value = metric[key as 'value' | 'used' | 'limit' | 'remaining' | 'percent'];
-    return value !== undefined && !finite(value);
-  })) return false;
-  if (metric.mode === 'capacity') return (finite(metric.value) && metric.value >= 0)
-    || (resource.id === 'colab-free' && metric.kind === 'gpu' && metric.value === undefined);
-  if (metric.mode === 'balance') return finite(metric.remaining);
-  if (metric.mode === 'usage') return finite(metric.used);
-  return false;
-};
 const resourceMetrics = (resource: Resource): ResourceMetricData[] => {
   const metrics = [...(resource.metrics || [])];
   const gpuMemory = resource.configuration.find(item => item.label.includes('显存') && item.value === '16 GB / 张');
@@ -67,15 +58,21 @@ const resourceMetrics = (resource: Resource): ResourceMetricData[] => {
   if (resource.id === 'google-cloud-shell' && shellHours && !metrics.some(metric => metric.key === 'weekly_hours')) {
     metrics.push({ key: 'weekly_hours', label: '每周时长', kind: 'runtime', mode: 'capacity', displayValue: shellHours.value, value: 50, unit: 'hours / week', basis: 'plan-limit' });
   }
-  return metrics.filter(metric => visibleMetric(metric, resource));
+  return metrics.filter(metric => isValidMetric(metric) && !isRedundantPlanMetric(metric, metrics));
 };
 const featured = ['instabox-free', 'kaggle-gpu', 'colab-free', 'google-cloud-shell'];
-const order = (id: string) => featured.includes(id) ? featured.indexOf(id) : featured.length;
+const order = (resource: Resource) => {
+  if (resource.metrics?.some(confirmedExhausted)) return 0;
+  if (resource.metrics?.some(metric => metric.mode === 'usage' && getMetricProgress(metric))) return 1;
+  if (resource.metrics?.some(metric => metric.mode === 'balance' && getMetricProgress(metric))) return 2;
+  if (resource.metrics?.some(metric => metric.basis === 'observed' && ['usage', 'balance'].includes(metric.mode))) return 3;
+  return 4 + (featured.includes(resource.id) ? featured.indexOf(resource.id) : featured.length);
+};
 const resources = dashboard.resources
-  .filter(resource => resource.claimStatus === 'claimed' && !['historical', 'restricted'].includes(resource.availability))
+  .filter(isVisibleResource)
   .map(resource => ({ ...resource, metrics: resourceMetrics(resource) }))
   .filter(resource => resource.metrics.length > 0)
-  .sort((a, b) => order(a.id) - order(b.id));
+  .sort((a, b) => order(a) - order(b));
 const categories = dashboard.categories.filter(category => resources.some(resource => resource.category === category.id));
 const countForCategory = (category: string) => resources.filter(resource => resource.category === category).length;
 const purposes: Record<string, string> = {
@@ -83,17 +80,18 @@ const purposes: Record<string, string> = {
   'google-cloud-shell': '云端开发终端', 'cloudflare-workers': '边缘函数', 'cloudflare-pages': '静态网站托管',
   'cloudflare-kv': '键值存储', 'cloudflare-r2-webdav': '对象存储', 'cloudflare-browser-run': '云端浏览器',
   'browserless-free': '浏览器自动化', 'cloudflare-d1': 'SQL 数据库', 'firecrawl-free': '网页采集',
+  'github-actions-compute': '自动化任务', 'apify-free': '网页采集与自动化', 'hf-zerogpu': '共享 GPU 配额', 'browserbase-free': '云端浏览器',
 };
 const searchText = (resource: Resource & { metrics: ResourceMetricData[] }) => [
   resource.name, resource.provider, purposes[resource.id] || '',
-  ...resource.metrics.flatMap(metric => [metric.mode === 'balance' ? '剩余额度' : metric.key === 'plan_credits' ? '账期额度' : metric.label, metric.displayValue]),
+  ...resource.metrics.flatMap(metric => [metricLabel(metric), metricDisplayValue(metric)]),
 ].join(' ').normalize('NFKC').toLocaleLowerCase();
 const displayDate = (date: string) => date.slice(0, 10).replaceAll('-', '.');
 const observationTime = (date: string) => new Intl.DateTimeFormat('zh-CN', {
   timeZone: 'Asia/Shanghai', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false,
 }).format(new Date(date)).replaceAll('/', '.');
 const recordedTime = (resource: Resource & { metrics: ResourceMetricData[] }) => {
-  const observed = resource.metrics.find(metric => metric.basis === 'observed' && metric.checkedAt)?.checkedAt;
+  const observed = resource.metrics.find(metric => ['observed', 'user-confirmed'].includes(metric.basis) && metric.checkedAt)?.checkedAt;
   return observed ? { value: observed, label: observationTime(observed), title: '北京时间' }
     : { value: resource.recordedAt, label: displayDate(resource.recordedAt), title: undefined };
 };
@@ -155,20 +153,22 @@ const recordedTime = (resource: Resource & { metrics: ResourceMetricData[] }) =>
         <div class="cloud-resource-grid" data-resource-grid>
           {resources.map(resource => {
             const time = recordedTime(resource);
+            const exhausted = resource.metrics.some(confirmedExhausted);
+            const badgeLabel = exhausted ? '额度用完' : resource.claimStatus === 'registered' ? '已注册' : '已领取';
             const linkLabel = resource.consoleUrl ? (resource.consoleLabel || '打开控制台') : '查看说明';
-            return <article class="cloud-resource-card" data-resource-card data-resource-id={resource.id} data-category={resource.category} data-search={searchText(resource)} style={`--resource-accent: ${resource.id === 'instabox-free' ? '#ee690b' : resource.accent}`} aria-labelledby={`resource-title-${resource.id}`}>
+            return <article class="cloud-resource-card" data-resource-card data-resource-id={resource.id} data-quota-state={exhausted ? 'exhausted' : undefined} data-claim-status={resource.claimStatus} data-category={resource.category} data-search={searchText(resource)} style={`--resource-accent: ${resource.id === 'instabox-free' ? '#ee690b' : resource.accent}`} aria-labelledby={`resource-title-${resource.id}`}>
               <div class="cloud-card-main">
                 <div class="cloud-card-header">
                   <div class="cloud-provider-icon" aria-hidden="true">{resource.id === 'instabox-free' ? 'I' : resource.initials}</div>
                   <div class="cloud-card-identity">
-                    <div class="cloud-card-title-row"><h2 id={`resource-title-${resource.id}`}>{resource.name}</h2><span class="cloud-claim-badge"><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-check" /></svg>已领取</span><span class="cloud-state-badge" data-resource-state hidden></span></div>
+                    <div class="cloud-card-title-row"><h2 id={`resource-title-${resource.id}`}>{resource.name}</h2><span class:list={["cloud-claim-badge", { "cloud-claim-badge--exhausted": exhausted }]} data-claim-badge><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-check" /></svg><span data-claim-label>{badgeLabel}</span></span><span class="cloud-state-badge" data-resource-state hidden></span></div>
                     <div class="cloud-provider-meta"><span class="cloud-provider-name">{resource.provider}</span>{purposes[resource.id] && <span class="cloud-card-purpose">{purposes[resource.id]}</span>}</div>
                   </div>
                 </div>
                 <div class="cloud-metric-grid">{resource.metrics.map(metric => <ResourceMetric metric={metric} resourceId={resource.id} usageStatus={resource.usageStatus} />)}</div>
                 {resource.id === 'cloudflare-r2-webdav' && <p class="cloud-card-footnote">超出包含额度可能计费</p>}
               </div>
-              <div class="cloud-card-footer"><span class="cloud-record-date">记录于 <time datetime={time.value} title={time.title}>{time.label}</time></span><a class="cloud-console-link" href={resource.consoleUrl || resource.officialUrl} target="_blank" rel="noopener noreferrer" aria-label={`${resource.name}：${linkLabel}（新标签页）`}>{linkLabel}<svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-arrow-up-right" /></svg></a></div>
+              <div class="cloud-card-footer"><span class="cloud-record-date">{resource.metrics.some(metric => metric.basis === 'user-confirmed') ? '确认于 ' : resource.metrics.some(metric => metric.basis === 'observed') ? '更新于 ' : '记录于 '}<time datetime={time.value} title={time.title}>{time.label}</time></span><a class="cloud-console-link" href={resource.consoleUrl || resource.officialUrl} target="_blank" rel="noopener noreferrer" aria-label={`${resource.name}：${linkLabel}（新标签页）`}>{linkLabel}<svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-arrow-up-right" /></svg></a></div>
             </article>;
           })}
         </div>
@@ -182,7 +182,7 @@ const recordedTime = (resource: Resource & { metrics: ResourceMetricData[] }) =>
   <template data-usage-metric-template>
     <div class="cloud-metric" role="group">
       <div class="cloud-metric-top"><span class="cloud-metric-label"><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-spark" /></svg><span data-metric-label></span></span><strong class="cloud-metric-value"></strong></div>
-      <div class="cloud-metric-visual"><div class="cloud-usage-bar cloud-usage-bar--dynamic"><span></span></div><div class="cloud-usage-scale"><span></span><span></span></div><div class="cloud-capacity-line" aria-hidden="true"></div></div>
+      <div class="cloud-metric-visual"><div class="cloud-usage-bar cloud-usage-bar--dynamic"><span></span></div><div class="cloud-usage-scale"><span></span><span></span></div></div>
     </div>
   </template>
 </div>

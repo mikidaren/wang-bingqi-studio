@@ -119,15 +119,18 @@ test('disk requires its own fresh /data measurement', () => {
   assert.deepEqual(normalizeInstaBoxDisk({ ...disk(), filesystems: [...disk().filesystems, ...disk().filesystems] }, { now }), []);
 });
 
-test('Firecrawl extra credits remain an absolute balance, separate from plan', () => {
+test('Firecrawl extra credits keep the plan as a balance reference, without inferred consumption', () => {
   const [balance, plan] = normalizeFirecrawlCurrent(current(), { now });
   assert.equal(balance.remaining, 1025);
   assert.equal(plan.value, 1000);
+  assert.equal(balance.limit, 1000);
+  assert.equal(balance.referenceLabel, '账期额度');
+  assert.equal(balance.mode, 'balance');
   for (const metric of [balance, plan]) {
     assert.equal(metric.percent, undefined);
     assert.equal(metric.used, undefined);
-    assert.equal(metric.limit, undefined);
   }
+  assert.equal(plan.limit, undefined);
   assert.equal(normalizeFirecrawlCurrent(current({ remainingCredits: 900 }), { now })[0].used, undefined);
 });
 
