@@ -60,7 +60,7 @@ class PublicExportTests(unittest.TestCase):
             for item in document["items"]:
                 for field in ("name", "value", "description", "nextAction", "proof", "proofUrl", "issueUrl",
                               "officialUrl", "consoleUrl", "consoleLabel", "note", "quota", "reason",
-                              "accountId", "instanceName", "apiKey"):
+                              "accountId", "instanceName", "apiKey", "acceptanceAt", "authAcceptance"):
                     item[field] = PRIVATE_MARKER
                 item["extra"] = {"nested": [PRIVATE_MARKER]}
                 for metric in item.get("metrics", []):
@@ -105,6 +105,20 @@ class PublicExportTests(unittest.TestCase):
         cards = {item["id"]: item for item in self.run_export()["resources"]}
         self.assertNotIn("consoleUrl", cards["cloudflare-quick-tunnel"])
         self.assertEqual(cards["instabox-free"]["consoleLabel"], "打开控制台")
+
+    def test_reviewed_availability_label_cannot_be_overridden_by_private_fields(self):
+        documents = inputs()
+        for document in documents:
+            for item in document["items"]:
+                item["availabilityLabel"] = PRIVATE_MARKER
+                item["availability"] = "recorded"
+        cards = {item["id"]: item for item in self.run_export(documents)["resources"]}
+        self.assertEqual(cards["instabox-free"]["availability"], "unverified")
+        self.assertEqual(cards["instabox-free"]["availabilityLabel"], "已挂起 · 运行待验收")
+        for resource_id, card in cards.items():
+            if resource_id != "instabox-free":
+                self.assertEqual(card["availabilityLabel"], exporter.AVAILABILITY[card["availability"]])
+        self.assertNotIn(PRIVATE_MARKER, json.dumps(cards))
 
     def test_usage_retains_its_original_time_and_does_not_invent_consumption(self):
         result = self.run_export()
@@ -364,3 +378,4 @@ class VisualMetricTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

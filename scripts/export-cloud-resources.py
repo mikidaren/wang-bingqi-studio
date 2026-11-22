@@ -87,10 +87,12 @@ DISPLAY = {
         ("运行方式", "按请求执行")),
     "hf-zerogpu": profile(
         "Hugging Face", "Hugging Face ZeroGPU", "ai", "HF", "#c79d13",
-        "账户注册已登记，GPU 访问与 Space 运行仍待验收。",
+        "2026-11-23 账户验收：鉴权与个人配额查询通过，非 PRO，支付标志为 false；Space 缺少应用文件，未验证 GPU 运行。",
         "https://huggingface.co/docs/hub/spaces-zerogpu",
-        ("公开日额度", "5 分钟 GPU"), ("刷新规则", "首次使用后 24 小时"),
-        ("当前可用性", "待核验")),
+        ("配额快照", "基础 300 秒；当前 300 秒"),
+        ("超额与重置", "超额 0 秒；重置时间未返回"),
+        ("Space 状态快照", "NO_APP_FILE（缺应用文件）"),
+        ("硬件快照", "实际未分配；申请 zero-a10g")),
     "cloudflare-pages": profile(
         "Cloudflare", "Cloudflare Pages", "hosting", "CF", "#f48120",
         "已用于静态网站托管与自定义域名访问。",
@@ -129,16 +131,17 @@ DISPLAY = {
         ("当前余量", "待核验")),
     "cloudflare-d1": profile(
         "Cloudflare", "Cloudflare D1", "storage", "D1", "#e27419",
-        "已由用户确认领取，数据库运行与用量仍待核验。",
+        "2026-11-23 账户验收：本次 D1 数据库目录请求返回 HTTP 401；未取得 D1 目录与用量，保留用户确认的领取记录。",
         "https://developers.cloudflare.com/d1/",
         ("方案总容量", "5 GB"), ("单库上限", "500 MB"),
         ("读取额度", "500 万行 / 日"), ("写入额度", "10 万行 / 日")),
     "neon-free": profile(
         "Neon", "Neon Postgres", "storage", "NE", "#15976b",
-        "Postgres 账户已注册，正式数据库项目待接入验收。",
+        "2026-11-23 账户验收：Free 组织中已有 1 个项目、1 个 idle 端点；本次未执行 SQL。",
         "https://neon.com/pricing",
         ("公开计算额度", "100 CU-hours / 项目 / 月"),
-        ("公开存储额度", "1 GB / 项目"), ("正式项目", "待验收")),
+        ("公开存储额度", "1 GB / 项目"), ("项目快照", "1 个项目；1 个 idle 端点"),
+        ("数据库执行", "本次未执行 SQL")),
     "railway-anonymous-vm": profile(
         "Railway", "Railway 临时云环境", "compute", "RW", "#6949a8",
         "曾验证短时 Linux 任务，记录不代表持续运行的实例。",
@@ -147,22 +150,23 @@ DISPLAY = {
         ("历史任务时限", "60 分钟")),
     "backblaze-b2-free": profile(
         "Backblaze", "Backblaze B2", "storage", "B2", "#d83e47",
-        "对象存储账户已登记，存储桶与实际用量待接入。",
+        "2026-11-23 账户验收：账户鉴权通过；存储桶目录、上传下载与实际用量尚未验证。",
         "https://www.backblaze.com/cloud-storage/pricing",
         ("公开免费容量", "前 10 GB"), ("出站规则", "月均存储量的 3 倍"),
         ("账户用量", "待核验")),
     "browserbase-free": profile(
         "Browserbase", "Browserbase", "browser", "BB", "#d26740",
-        "云浏览器账户已注册，会话与账户用量尚待验收。",
+        "2026-11-23 账户验收：确认 1 个项目并读取用量快照；本次未创建浏览器会话。",
         "https://docs.browserbase.com/",
-        ("公开浏览器额度", "60 分钟 / 月"), ("Fetch 额度", "1,000 次 / 月"),
-        ("并发上限", "3 个会话")),
+        ("项目快照", "1 个"), ("浏览器时长快照", "0 分钟"),
+        ("代理流量快照", "0 bytes"), ("用量统计周期", "未返回；剩余额度未推算")),
     "instabox-free": profile(
         "InstaBox", "InstaBox 云电脑", "compute", "IB", "#507caa",
-        "云电脑配置由历史截图确认，当前运行状态待核验。",
+        "2026-11-23 账户验收：官方 API 确认免费实例配置，状态为已挂起；本次未启动实例。",
         "https://dashboard.instabox.sh",
-        ("CPU 截图", "4 vCPU"), ("内存截图", "8 GiB"),
-        ("存储截图", "20 GiB"), ("实例数量记录", "1 台")),
+        ("CPU 配置快照", "4 vCPU"), ("内存配置快照", "8 GiB（8192 MiB）"),
+        ("持久盘配置快照", "20 GiB"), ("实例状态快照", "suspended（已挂起）"))
+        | {"availabilityLabel": "已挂起 · 运行待验收"},
     "northflank-sandbox": profile(
         "Northflank", "Northflank Sandbox", "hosting", "NF", "#4b72d3",
         "应用托管账户已注册，服务部署与实际额度待验收。",
@@ -177,10 +181,10 @@ DISPLAY = {
         ("当前余额", "待核验")),
     "apify-free": profile(
         "Apify", "Apify", "browser", "AP", "#bc7341",
-        "自动化平台账户已注册，Actor 运行与实际消费待验收。",
+        "2026-11-23 账户验收：确认 FREE 方案并读取月度消费；本次未运行 Actor，消费上限不等于赠额余额。",
         "https://apify.com/pricing",
-        ("公开月额度", "$5"), ("运行方式", "Actor 任务"),
-        ("实际消费", "待核验")),
+        ("方案快照", "FREE（月费 $0）"), ("方案月赠额", "$5"),
+        ("月度消费快照", "$0"), ("账户消费上限", "$5")),
     "firecrawl-free": profile(
         "Firecrawl", "Firecrawl", "browser", "FC", "#de6b37",
         "已通过连接器读取网页，历史额度保留独立观测时间。",
@@ -189,31 +193,31 @@ DISPLAY = {
         ("验证途径", "已连接服务")),
     "render-free": profile(
         "Render", "Render Web Service", "hosting", "RE", "#5960b7",
-        "托管账户已注册，Web Service 部署与可用额度待验收。",
+        "2026-11-23 账户验收：唯一工作区的服务、Postgres 与 Key Value 目录均为空；本次未创建或部署资源。",
         "https://render.com/docs/free",
-        ("公开月额度", "750 实例小时 / 工作区"), ("服务类型", "Web Service"),
-        ("部署状态", "待验收")),
+        ("服务快照", "0 个"), ("Postgres 快照", "0 个"),
+        ("Key Value 快照", "0 个"), ("公开月额度", "750 实例小时 / 工作区")),
     "cloudflare-workers-ai": profile(
         "Cloudflare", "Cloudflare Workers AI", "ai", "AI", "#e27419",
-        "AI 服务接入已登记，实际推理与账户余量待核验。",
+        "2026-11-23 账户验收：模型目录读取成功；本次未执行推理，账户用量未取得。",
         "https://developers.cloudflare.com/workers-ai/",
-        ("公开日额度", "10,000 Neurons"), ("服务类型", "模型推理"),
-        ("当前余量", "待核验")),
+        ("公开日额度", "10,000 Neurons"), ("验收范围", "模型目录读取"),
+        ("推理与余量", "本次未验证")),
     "upstash-redis-free": profile(
         "Upstash", "Upstash Redis", "storage", "UP", "#1a9b70",
-        "Redis 服务已登记，数据库与实际读写待接入验收。",
+        "2026-11-23 账户验收：管理接口鉴权通过，数据库目录为 0 个；Redis 实例与读写尚未验收。",
         "https://upstash.com/pricing/redis",
         ("公开存储额度", "250 MB"), ("命令额度", "50 万次 / 月"),
-        ("带宽额度", "10 GB / 月")),
+        ("带宽额度", "10 GB / 月"), ("数据库快照", "0 个")),
     "groq-free": profile(
         "Groq", "Groq 推理 API", "ai", "GQ", "#d96840",
-        "推理 API 接入已登记，模型调用与账户限额待核验。",
+        "2026-11-23 账户验收：鉴权与模型目录读取成功，返回 11 个模型；本次未执行推理。",
         "https://console.groq.com/docs/rate-limits",
         ("额度方式", "按模型分别限流"), ("周期", "分钟与日限额"),
-        ("实际可用量", "待核验")),
+        ("模型目录快照", "11 个"), ("实际可用量", "未取得账户读数")),
     "turso-free": profile(
         "Turso", "Turso", "storage", "TU", "#338b7e",
-        "数据库服务已登记，连接与实际查询待接入验收。",
+        "2026-11-23 账户验收：数据库接口仅验证了关闭请求并返回成功；本次未执行 SQL，读写能力未验收。",
         "https://turso.tech/pricing",
         ("公开数据库数", "100 个"), ("总存储额度", "5 GB"),
         ("读取额度", "5 亿行 / 月"), ("写入额度", "1,000 万行 / 月")),
@@ -318,8 +322,10 @@ VISUAL_PROFILES = {
         capacity_metric("requests", "请求额度", "requests", "100,000 次 / 日", 100000, "requests"),
         capacity_metric("cpu_time", "CPU 时间", "cpu", "10 ms / 请求", 10, "ms")],
     "hf-zerogpu": [
-        capacity_metric("gpu_minutes", "GPU 时长", "runtime", "5 分钟 / 日", 5, "minutes"),
-        unknown_metric("gpu", "GPU 配置", "gpu")],
+        capacity_metric("gpu_minutes", "个人共享 GPU 配额", "runtime", "5 分钟基础配额", 5, "minutes",
+                        note="2026-11-23 06:04（北京时间）个人调用共享 ZeroGPU 的基础与当前配额均为 300 秒；重置时间未返回，不代表自建 Space 已分配 GPU。"),
+        {**unknown_metric("gpu", "Space GPU 配置", "gpu"),
+         "note": "2026-11-23 Space 为 NO_APP_FILE，实际硬件未分配；申请 zero-a10g 不等于已获得 GPU。"}],
     "cloudflare-pages": [
         capacity_metric("builds", "构建额度", "quota", "500 次 / 月", 500, "builds"),
         unknown_metric("build_usage", "已用构建", "quota")],
@@ -363,9 +369,12 @@ VISUAL_PROFILES = {
         capacity_metric("concurrency", "并发上限", "concurrency", "3 个会话", 3, "sessions"),
         unknown_metric("proxy_bytes", "代理流量", "network")],
     "instabox-free": hardware_metrics(
-        cpu=capacity_metric("cpu", "CPU", "cpu", "4 vCPU", 4, "vCPU", "recorded-config"),
-        memory=capacity_metric("memory", "内存", "memory", "8 GiB", 8, "GiB", "recorded-config"),
-        storage=capacity_metric("storage", "存储", "storage", "20 GiB", 20, "GiB", "recorded-config")),
+        cpu=capacity_metric("cpu", "CPU", "cpu", "4 vCPU", 4, "vCPU", "recorded-config",
+                            "2026-11-23 06:03（北京时间）官方 API 配置快照；实例已挂起，实际占用未观测。"),
+        memory=capacity_metric("memory", "内存", "memory", "8 GiB", 8, "GiB", "recorded-config",
+                               "2026-11-23 06:03（北京时间）官方 API 配置快照，8192 MiB；实例已挂起，实际占用未观测。"),
+        storage=capacity_metric("storage", "持久盘", "storage", "20 GiB", 20, "GiB", "recorded-config",
+                                "2026-11-23 06:03（北京时间）官方 API 确认的持久盘配置；实际已用空间未观测，不与根盘容量合并。")),
     "northflank-sandbox": [
         capacity_metric("services", "服务配额", "quota", "2 个 services", 2, "services"),
         capacity_metric("jobs", "任务配额", "quota", "2 个 jobs", 2, "jobs"),
@@ -380,15 +389,19 @@ VISUAL_PROFILES = {
                         unknown_metric("plan_credits", "账期额度", "quota")],
     "render-free": [
         capacity_metric("instance_hours", "实例时长", "runtime", "750 小时 / 月", 750, "instance-hours",
-                        note="公开方案按工作区共享计量；实际用量未观测。"),
-        unknown_metric("cpu", "CPU", "cpu"), unknown_metric("memory", "内存", "memory")],
+                        note="公开方案按工作区共享计量；2026-11-23 工作区未发现服务、Postgres 或 Key Value 实例，实际用量未观测。"),
+        {**unknown_metric("cpu", "CPU", "cpu"), "note": "2026-11-23 未发现已部署实例，无 CPU 负载观测。"},
+        {**unknown_metric("memory", "内存", "memory"), "note": "2026-11-23 未发现已部署实例，无内存占用观测。"}],
     "cloudflare-workers-ai": [
         capacity_metric("neurons", "推理额度", "quota", "10,000 Neurons / 日", 10000, "Neurons"),
         unknown_metric("used_neurons", "已用额度", "quota")],
     "upstash-redis-free": [
-        capacity_metric("storage", "存储容量", "storage", "250 MB", 250, "MB"),
-        capacity_metric("commands", "命令额度", "requests", "50 万次 / 月", 500000, "commands"),
-        capacity_metric("bandwidth", "带宽额度", "network", "10 GB / 月", 10, "GB")],
+        capacity_metric("storage", "存储容量", "storage", "250 MB", 250, "MB",
+                        note="公开方案上限；2026-11-23 数据库目录为 0 个，尚无实例用量观测。"),
+        capacity_metric("commands", "命令额度", "requests", "50 万次 / 月", 500000, "commands",
+                        note="公开方案上限；2026-11-23 数据库目录为 0 个，尚无实例用量观测。"),
+        capacity_metric("bandwidth", "带宽额度", "network", "10 GB / 月", 10, "GB",
+                        note="公开方案上限；2026-11-23 数据库目录为 0 个，尚无实例用量观测。")],
     "groq-free": [unknown_metric("requests", "请求额度", "requests"),
                   unknown_metric("tokens", "Token 额度", "quota")],
     "turso-free": [
@@ -656,7 +669,7 @@ def export_resources(benefits, catalog, usage, source_checked_at=None):
             "evidenceType": evidence_type,
             "evidenceLabel": evidence_label,
             "availability": availability,
-            "availabilityLabel": AVAILABILITY[availability],
+            "availabilityLabel": display.get("availabilityLabel", AVAILABILITY[availability]),
         }
         if resource_id in CONSOLES:
             card["consoleUrl"], card["consoleLabel"] = CONSOLES[resource_id]
@@ -725,3 +738,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

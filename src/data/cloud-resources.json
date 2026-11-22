@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "updatedAt": "2026-11-23",
-  "sourceCheckedAt": "2026-11-22T21:56:45Z",
+  "sourceCheckedAt": "2026-11-22T22:23:34Z",
   "notice": "硬件与方案额度按记录展示；用量保留账户快照的观测时间，未观测项不推算。",
   "summary": {
     "claimed": 15,
@@ -444,27 +444,31 @@
       "category": "ai",
       "initials": "HF",
       "accent": "#c79d13",
-      "summary": "账户注册已登记，GPU 访问与 Space 运行仍待验收。",
+      "summary": "2026-11-23 账户验收：鉴权与个人配额查询通过，非 PRO，支付标志为 false；Space 缺少应用文件，未验证 GPU 运行。",
       "officialUrl": "https://huggingface.co/docs/hub/spaces-zerogpu",
       "configuration": [
         {
-          "label": "公开日额度",
-          "value": "5 分钟 GPU"
+          "label": "配额快照",
+          "value": "基础 300 秒；当前 300 秒"
         },
         {
-          "label": "刷新规则",
-          "value": "首次使用后 24 小时"
+          "label": "超额与重置",
+          "value": "超额 0 秒；重置时间未返回"
         },
         {
-          "label": "当前可用性",
-          "value": "待核验"
+          "label": "Space 状态快照",
+          "value": "NO_APP_FILE（缺应用文件）"
+        },
+        {
+          "label": "硬件快照",
+          "value": "实际未分配；申请 zero-a10g"
         }
       ],
       "claimStatus": "registered",
       "claimLabel": "待接入",
       "recordedAt": "2026-11-23",
-      "evidenceType": "user-confirmed",
-      "evidenceLabel": "用户确认注册",
+      "evidenceType": "account",
+      "evidenceLabel": "账户记录",
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://huggingface.co/settings/profile",
@@ -472,23 +476,23 @@
       "metrics": [
         {
           "key": "gpu_minutes",
-          "label": "GPU 时长",
+          "label": "个人共享 GPU 配额",
           "kind": "runtime",
           "mode": "capacity",
-          "displayValue": "5 分钟 / 日",
+          "displayValue": "5 分钟基础配额",
           "basis": "plan-limit",
-          "note": "方案额度记录；账户实际用量未观测。",
+          "note": "2026-11-23 06:04（北京时间）个人调用共享 ZeroGPU 的基础与当前配额均为 300 秒；重置时间未返回，不代表自建 Space 已分配 GPU。",
           "value": 5,
           "unit": "minutes"
         },
         {
           "key": "gpu",
-          "label": "GPU 配置",
+          "label": "Space GPU 配置",
           "kind": "gpu",
           "mode": "unknown",
           "displayValue": "未观测",
           "basis": "unknown",
-          "note": "暂无可核实的用量读数。"
+          "note": "2026-11-23 Space 为 NO_APP_FILE，实际硬件未分配；申请 zero-a10g 不等于已获得 GPU。"
         }
       ],
       "usageStatus": "unknown"
@@ -870,7 +874,7 @@
       "category": "storage",
       "initials": "D1",
       "accent": "#e27419",
-      "summary": "已由用户确认领取，数据库运行与用量仍待核验。",
+      "summary": "2026-11-23 账户验收：本次 D1 数据库目录请求返回 HTTP 401；未取得 D1 目录与用量，保留用户确认的领取记录。",
       "officialUrl": "https://developers.cloudflare.com/d1/",
       "configuration": [
         {
@@ -954,7 +958,7 @@
       "category": "storage",
       "initials": "NE",
       "accent": "#15976b",
-      "summary": "Postgres 账户已注册，正式数据库项目待接入验收。",
+      "summary": "2026-11-23 账户验收：Free 组织中已有 1 个项目、1 个 idle 端点；本次未执行 SQL。",
       "officialUrl": "https://neon.com/pricing",
       "configuration": [
         {
@@ -966,15 +970,19 @@
           "value": "1 GB / 项目"
         },
         {
-          "label": "正式项目",
-          "value": "待验收"
+          "label": "项目快照",
+          "value": "1 个项目；1 个 idle 端点"
+        },
+        {
+          "label": "数据库执行",
+          "value": "本次未执行 SQL"
         }
       ],
       "claimStatus": "registered",
       "claimLabel": "待接入",
       "recordedAt": "2026-11-23",
-      "evidenceType": "user-confirmed",
-      "evidenceLabel": "用户确认注册",
+      "evidenceType": "account",
+      "evidenceLabel": "账户记录",
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://console.neon.tech/",
@@ -1086,7 +1094,7 @@
       "category": "storage",
       "initials": "B2",
       "accent": "#d83e47",
-      "summary": "对象存储账户已登记，存储桶与实际用量待接入。",
+      "summary": "2026-11-23 账户验收：账户鉴权通过；存储桶目录、上传下载与实际用量尚未验证。",
       "officialUrl": "https://www.backblaze.com/cloud-storage/pricing",
       "configuration": [
         {
@@ -1105,8 +1113,8 @@
       "claimStatus": "registered",
       "claimLabel": "待接入",
       "recordedAt": "2026-11-23",
-      "evidenceType": "user-confirmed",
-      "evidenceLabel": "用户确认注册",
+      "evidenceType": "account",
+      "evidenceLabel": "账户记录",
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://secure.backblaze.com/",
@@ -1142,27 +1150,31 @@
       "category": "browser",
       "initials": "BB",
       "accent": "#d26740",
-      "summary": "云浏览器账户已注册，会话与账户用量尚待验收。",
+      "summary": "2026-11-23 账户验收：确认 1 个项目并读取用量快照；本次未创建浏览器会话。",
       "officialUrl": "https://docs.browserbase.com/",
       "configuration": [
         {
-          "label": "公开浏览器额度",
-          "value": "60 分钟 / 月"
+          "label": "项目快照",
+          "value": "1 个"
         },
         {
-          "label": "Fetch 额度",
-          "value": "1,000 次 / 月"
+          "label": "浏览器时长快照",
+          "value": "0 分钟"
         },
         {
-          "label": "并发上限",
-          "value": "3 个会话"
+          "label": "代理流量快照",
+          "value": "0 bytes"
+        },
+        {
+          "label": "用量统计周期",
+          "value": "未返回；剩余额度未推算"
         }
       ],
       "claimStatus": "registered",
       "claimLabel": "待接入",
       "recordedAt": "2026-11-23",
-      "evidenceType": "user-confirmed",
-      "evidenceLabel": "用户确认注册",
+      "evidenceType": "account",
+      "evidenceLabel": "账户记录",
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://www.browserbase.com/overview",
@@ -1170,14 +1182,27 @@
       "metrics": [
         {
           "key": "browser_minutes",
-          "label": "浏览器时长",
+          "label": "浏览器用量",
           "kind": "runtime",
-          "mode": "capacity",
-          "displayValue": "60 分钟 / 月",
-          "basis": "plan-limit",
-          "note": "方案额度记录；账户实际用量未观测。",
-          "value": 60,
-          "unit": "minutes"
+          "mode": "usage",
+          "displayValue": "0 分钟",
+          "unit": "minutes",
+          "used": 0,
+          "basis": "observed",
+          "checkedAt": "2026-11-22T22:03:54.410186Z",
+          "note": "已观测绝对用量；统计周期未知。"
+        },
+        {
+          "key": "proxy_bytes",
+          "label": "代理流量",
+          "kind": "network",
+          "mode": "usage",
+          "displayValue": "0 bytes",
+          "unit": "bytes",
+          "used": 0,
+          "basis": "observed",
+          "checkedAt": "2026-11-22T22:03:54.410186Z",
+          "note": "已观测绝对用量；统计周期未知。"
         },
         {
           "key": "fetch_requests",
@@ -1200,18 +1225,9 @@
           "note": "方案额度记录；账户实际用量未观测。",
           "value": 3,
           "unit": "sessions"
-        },
-        {
-          "key": "proxy_bytes",
-          "label": "代理流量",
-          "kind": "network",
-          "mode": "unknown",
-          "displayValue": "未观测",
-          "basis": "unknown",
-          "note": "暂无可核实的用量读数。"
         }
       ],
-      "usageStatus": "unknown"
+      "usageStatus": "observed"
     },
     {
       "id": "instabox-free",
@@ -1220,33 +1236,33 @@
       "category": "compute",
       "initials": "IB",
       "accent": "#507caa",
-      "summary": "云电脑配置由历史截图确认，当前运行状态待核验。",
+      "summary": "2026-11-23 账户验收：官方 API 确认免费实例配置，状态为已挂起；本次未启动实例。",
       "officialUrl": "https://dashboard.instabox.sh",
       "configuration": [
         {
-          "label": "CPU 截图",
+          "label": "CPU 配置快照",
           "value": "4 vCPU"
         },
         {
-          "label": "内存截图",
-          "value": "8 GiB"
+          "label": "内存配置快照",
+          "value": "8 GiB（8192 MiB）"
         },
         {
-          "label": "存储截图",
+          "label": "持久盘配置快照",
           "value": "20 GiB"
         },
         {
-          "label": "实例数量记录",
-          "value": "1 台"
+          "label": "实例状态快照",
+          "value": "suspended（已挂起）"
         }
       ],
+      "availabilityLabel": "已挂起 · 运行待验收",
       "claimStatus": "claimed",
       "claimLabel": "已领取",
-      "recordedAt": "2026-11-21",
-      "evidenceType": "screenshot",
-      "evidenceLabel": "历史截图确认",
+      "recordedAt": "2026-11-23",
+      "evidenceType": "account",
+      "evidenceLabel": "账户记录",
       "availability": "unverified",
-      "availabilityLabel": "当前状态待核验",
       "consoleUrl": "https://dashboard.instabox.sh",
       "consoleLabel": "打开控制台",
       "metrics": [
@@ -1257,7 +1273,7 @@
           "mode": "capacity",
           "displayValue": "4 vCPU",
           "basis": "recorded-config",
-          "note": "历史配置记录；实际占用未观测。",
+          "note": "2026-11-23 06:03（北京时间）官方 API 配置快照；实例已挂起，实际占用未观测。",
           "value": 4,
           "unit": "vCPU"
         },
@@ -1268,18 +1284,18 @@
           "mode": "capacity",
           "displayValue": "8 GiB",
           "basis": "recorded-config",
-          "note": "历史配置记录；实际占用未观测。",
+          "note": "2026-11-23 06:03（北京时间）官方 API 配置快照，8192 MiB；实例已挂起，实际占用未观测。",
           "value": 8,
           "unit": "GiB"
         },
         {
           "key": "storage",
-          "label": "存储",
+          "label": "持久盘",
           "kind": "storage",
           "mode": "capacity",
           "displayValue": "20 GiB",
           "basis": "recorded-config",
-          "note": "历史配置记录；实际占用未观测。",
+          "note": "2026-11-23 06:03（北京时间）官方 API 确认的持久盘配置；实际已用空间未观测，不与根盘容量合并。",
           "value": 20,
           "unit": "GiB"
         },
@@ -1390,8 +1406,8 @@
       "claimStatus": "registered",
       "claimLabel": "待接入",
       "recordedAt": "2026-11-23",
-      "evidenceType": "user-confirmed",
-      "evidenceLabel": "用户确认注册",
+      "evidenceType": "account",
+      "evidenceLabel": "账户记录",
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://app.zenrows.com/",
@@ -1427,32 +1443,51 @@
       "category": "browser",
       "initials": "AP",
       "accent": "#bc7341",
-      "summary": "自动化平台账户已注册，Actor 运行与实际消费待验收。",
+      "summary": "2026-11-23 账户验收：确认 FREE 方案并读取月度消费；本次未运行 Actor，消费上限不等于赠额余额。",
       "officialUrl": "https://apify.com/pricing",
       "configuration": [
         {
-          "label": "公开月额度",
+          "label": "方案快照",
+          "value": "FREE（月费 $0）"
+        },
+        {
+          "label": "方案月赠额",
           "value": "$5"
         },
         {
-          "label": "运行方式",
-          "value": "Actor 任务"
+          "label": "月度消费快照",
+          "value": "$0"
         },
         {
-          "label": "实际消费",
-          "value": "待核验"
+          "label": "账户消费上限",
+          "value": "$5"
         }
       ],
       "claimStatus": "registered",
       "claimLabel": "待接入",
       "recordedAt": "2026-11-23",
-      "evidenceType": "user-confirmed",
-      "evidenceLabel": "用户确认注册",
+      "evidenceType": "account",
+      "evidenceLabel": "账户记录",
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://console.apify.com/",
       "consoleLabel": "打开控制台",
       "metrics": [
+        {
+          "key": "monthly_usage_usd",
+          "label": "账户消费",
+          "kind": "quota",
+          "mode": "usage",
+          "displayValue": "$0",
+          "unit": "USD",
+          "used": 0,
+          "limit": 5,
+          "remaining": 5,
+          "basis": "observed",
+          "checkedAt": "2026-11-22T22:02:08.374895Z",
+          "percent": 0.0,
+          "note": "按账户消费上限计量；赠送余额未核实。"
+        },
         {
           "key": "plan_credits",
           "label": "公开月额度",
@@ -1463,18 +1498,9 @@
           "note": "方案额度记录；账户实际用量未观测。",
           "value": 5,
           "unit": "USD"
-        },
-        {
-          "key": "monthly_usage_usd",
-          "label": "账户消费",
-          "kind": "quota",
-          "mode": "unknown",
-          "displayValue": "未观测",
-          "basis": "unknown",
-          "note": "暂无可核实的用量读数。"
         }
       ],
-      "usageStatus": "unknown"
+      "usageStatus": "observed"
     },
     {
       "id": "firecrawl-free",
@@ -1519,7 +1545,7 @@
           "limit": 1000,
           "remaining": 1025,
           "basis": "observed",
-          "checkedAt": "2026-11-22T21:53:21Z",
+          "checkedAt": "2026-11-22T22:03:49.227252Z",
           "note": "账期额度与余额来自账户快照。 余额高于账期额度；额外额度来源未核实，已用量未推算。"
         },
         {
@@ -1532,14 +1558,14 @@
           "note": "同次账户快照中的账期额度；与余额分开显示。",
           "value": 1000,
           "unit": "credits",
-          "checkedAt": "2026-11-22T21:53:21Z"
+          "checkedAt": "2026-11-22T22:03:49.227252Z"
         }
       ],
       "usageStatus": "observed",
       "quota": {
         "label": "已记录余额",
         "value": "1,025 credits",
-        "checkedAt": "2026-11-22T21:53:21Z",
+        "checkedAt": "2026-11-22T22:03:49.227252Z",
         "note": "历史快照，非当前余额。余额高于账期额度，额外额度来源未核实。"
       }
     },
@@ -1550,27 +1576,31 @@
       "category": "hosting",
       "initials": "RE",
       "accent": "#5960b7",
-      "summary": "托管账户已注册，Web Service 部署与可用额度待验收。",
+      "summary": "2026-11-23 账户验收：唯一工作区的服务、Postgres 与 Key Value 目录均为空；本次未创建或部署资源。",
       "officialUrl": "https://render.com/docs/free",
       "configuration": [
         {
+          "label": "服务快照",
+          "value": "0 个"
+        },
+        {
+          "label": "Postgres 快照",
+          "value": "0 个"
+        },
+        {
+          "label": "Key Value 快照",
+          "value": "0 个"
+        },
+        {
           "label": "公开月额度",
           "value": "750 实例小时 / 工作区"
-        },
-        {
-          "label": "服务类型",
-          "value": "Web Service"
-        },
-        {
-          "label": "部署状态",
-          "value": "待验收"
         }
       ],
       "claimStatus": "registered",
       "claimLabel": "待接入",
       "recordedAt": "2026-11-23",
-      "evidenceType": "user-confirmed",
-      "evidenceLabel": "用户确认注册",
+      "evidenceType": "account",
+      "evidenceLabel": "账户记录",
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://dashboard.render.com/",
@@ -1583,7 +1613,7 @@
           "mode": "capacity",
           "displayValue": "750 小时 / 月",
           "basis": "plan-limit",
-          "note": "公开方案按工作区共享计量；实际用量未观测。",
+          "note": "公开方案按工作区共享计量；2026-11-23 工作区未发现服务、Postgres 或 Key Value 实例，实际用量未观测。",
           "value": 750,
           "unit": "instance-hours"
         },
@@ -1594,7 +1624,7 @@
           "mode": "unknown",
           "displayValue": "未观测",
           "basis": "unknown",
-          "note": "暂无可核实的用量读数。"
+          "note": "2026-11-23 未发现已部署实例，无 CPU 负载观测。"
         },
         {
           "key": "memory",
@@ -1603,7 +1633,7 @@
           "mode": "unknown",
           "displayValue": "未观测",
           "basis": "unknown",
-          "note": "暂无可核实的用量读数。"
+          "note": "2026-11-23 未发现已部署实例，无内存占用观测。"
         }
       ],
       "usageStatus": "unknown"
@@ -1615,7 +1645,7 @@
       "category": "ai",
       "initials": "AI",
       "accent": "#e27419",
-      "summary": "AI 服务接入已登记，实际推理与账户余量待核验。",
+      "summary": "2026-11-23 账户验收：模型目录读取成功；本次未执行推理，账户用量未取得。",
       "officialUrl": "https://developers.cloudflare.com/workers-ai/",
       "configuration": [
         {
@@ -1623,19 +1653,19 @@
           "value": "10,000 Neurons"
         },
         {
-          "label": "服务类型",
-          "value": "模型推理"
+          "label": "验收范围",
+          "value": "模型目录读取"
         },
         {
-          "label": "当前余量",
-          "value": "待核验"
+          "label": "推理与余量",
+          "value": "本次未验证"
         }
       ],
       "claimStatus": "registered",
       "claimLabel": "待接入",
       "recordedAt": "2026-11-23",
-      "evidenceType": "user-confirmed",
-      "evidenceLabel": "用户确认注册",
+      "evidenceType": "account",
+      "evidenceLabel": "账户记录",
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://dash.cloudflare.com/",
@@ -1671,7 +1701,7 @@
       "category": "storage",
       "initials": "UP",
       "accent": "#1a9b70",
-      "summary": "Redis 服务已登记，数据库与实际读写待接入验收。",
+      "summary": "2026-11-23 账户验收：管理接口鉴权通过，数据库目录为 0 个；Redis 实例与读写尚未验收。",
       "officialUrl": "https://upstash.com/pricing/redis",
       "configuration": [
         {
@@ -1685,13 +1715,17 @@
         {
           "label": "带宽额度",
           "value": "10 GB / 月"
+        },
+        {
+          "label": "数据库快照",
+          "value": "0 个"
         }
       ],
       "claimStatus": "registered",
       "claimLabel": "待接入",
       "recordedAt": "2026-11-23",
-      "evidenceType": "user-confirmed",
-      "evidenceLabel": "用户确认注册",
+      "evidenceType": "account",
+      "evidenceLabel": "账户记录",
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://console.upstash.com/",
@@ -1704,7 +1738,7 @@
           "mode": "capacity",
           "displayValue": "250 MB",
           "basis": "plan-limit",
-          "note": "方案额度记录；账户实际用量未观测。",
+          "note": "公开方案上限；2026-11-23 数据库目录为 0 个，尚无实例用量观测。",
           "value": 250,
           "unit": "MB"
         },
@@ -1715,7 +1749,7 @@
           "mode": "capacity",
           "displayValue": "50 万次 / 月",
           "basis": "plan-limit",
-          "note": "方案额度记录；账户实际用量未观测。",
+          "note": "公开方案上限；2026-11-23 数据库目录为 0 个，尚无实例用量观测。",
           "value": 500000,
           "unit": "commands"
         },
@@ -1726,7 +1760,7 @@
           "mode": "capacity",
           "displayValue": "10 GB / 月",
           "basis": "plan-limit",
-          "note": "方案额度记录；账户实际用量未观测。",
+          "note": "公开方案上限；2026-11-23 数据库目录为 0 个，尚无实例用量观测。",
           "value": 10,
           "unit": "GB"
         }
@@ -1740,7 +1774,7 @@
       "category": "ai",
       "initials": "GQ",
       "accent": "#d96840",
-      "summary": "推理 API 接入已登记，模型调用与账户限额待核验。",
+      "summary": "2026-11-23 账户验收：鉴权与模型目录读取成功，返回 11 个模型；本次未执行推理。",
       "officialUrl": "https://console.groq.com/docs/rate-limits",
       "configuration": [
         {
@@ -1752,15 +1786,19 @@
           "value": "分钟与日限额"
         },
         {
+          "label": "模型目录快照",
+          "value": "11 个"
+        },
+        {
           "label": "实际可用量",
-          "value": "待核验"
+          "value": "未取得账户读数"
         }
       ],
       "claimStatus": "registered",
       "claimLabel": "待接入",
       "recordedAt": "2026-11-23",
-      "evidenceType": "user-confirmed",
-      "evidenceLabel": "用户确认注册",
+      "evidenceType": "account",
+      "evidenceLabel": "账户记录",
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://console.groq.com/",
@@ -1794,7 +1832,7 @@
       "category": "storage",
       "initials": "TU",
       "accent": "#338b7e",
-      "summary": "数据库服务已登记，连接与实际查询待接入验收。",
+      "summary": "2026-11-23 账户验收：数据库接口仅验证了关闭请求并返回成功；本次未执行 SQL，读写能力未验收。",
       "officialUrl": "https://turso.tech/pricing",
       "configuration": [
         {
@@ -1817,8 +1855,8 @@
       "claimStatus": "registered",
       "claimLabel": "待接入",
       "recordedAt": "2026-11-23",
-      "evidenceType": "user-confirmed",
-      "evidenceLabel": "用户确认注册",
+      "evidenceType": "account",
+      "evidenceLabel": "账户记录",
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://app.turso.tech/",
