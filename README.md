@@ -1,187 +1,40 @@
-# WANG Bingqi Studio
+# WANG BINGQI Studio
 
-建筑作品与研究笔记站 — Astro + Decap CMS + Cloudflare Pages
+项目与工具入口，使用主站黑白灰视觉。Astro + Cloudflare Pages Functions，main 推送后自动部署。
 
-- 线上：`https://studio.miki2022.eu.org`
-- 仓库：`https://github.com/mikidaren/wang-bingqi-studio`（public）
-- **推送即部署**：Cloudflare Pages 已接 GitHub，push `main` 会自动构建上线，不用手动上传
+- Studio：https://studio.miki2022.eu.org/
+- 主站：https://miki2022.eu.org/
 
-## 云资源面板
+## 当前入口
 
-`/category/process` 展示已领取及已注册待接入的云资源，支持分类、搜索和领取状态筛选，使用独立的浅色卡片布局。完整台账保留在资源仓库，这里只保存经过白名单导出的公开快照。更新方法见 [云资源页面维护说明](docs/CLOUD_RESOURCES.md)。
+| 入口 | 地址 | 内容 |
+| --- | --- | --- |
+| 云资源 | `/category/process/` | 已领取云资源、用量记录、刷新与控制台 |
+| 哈尔滨冰雪大世界 | `/category/project/` | 规划、建筑、设计与施工三个模块 |
 
-## IceWorld 项目工作台
+在 `src/data/studio-projects.ts` 添加项目及对应页面，首页、共享导航、描述和 404 入口会同步生成。原博客、Research、Grasshopper 和 CMS 公开入口已移除，旧链接回 Studio，历史源码可从 Git 恢复。
 
-`/category/project/` 承载原有的 S0–S6 引导流程。前端和共享生成服务由 Platform3 源码仓库的 `web/server/export-pages.mjs` 导出到本仓库，源码版本记录在 `public/category/project/build.json`。编辑产品逻辑时先修改源码仓库，再构建、导出和验证本宿主。
+## 云资源
 
-固定生成路由为 `/category/project/design/compose` 和 `/category/project/design/draw`。在 Pages 的生产环境设置 `CHUNXIAO_BASE_URL`，将 `CHUNXIAO_TEXT_KEY` 和 `CHUNXIAO_IMAGE_KEY` 保存为 Secret。`wrangler.jsonc` 提供实际边缘运行配置。原通用代理路由已退休。
+`src/data/cloud-resources.json` 为已审核的公开台账，导出维护见 [CLOUD_RESOURCES.md](docs/CLOUD_RESOURCES.md)。`src/data/resource-usage-snapshot.json` 保存定时公开读数；`/api/resource-usage` 合并快照及配置完成后的供应商 API 结果，页面每 60 秒检查并支持手动刷新。只有同口径真实已用量与总量才显示进度比例，没有数值的字段不生成格子。
 
-构建时使用锁定的 Wrangler 版本将完整 Functions 路由编译为 `dist/_worker.js`，同时生成路由清单。这样 Pages 的旧版内置构建器可以直接发布预编译结果，原有认证路由和静态资源回退也一同保留。
+凭据仅在 Pages Secret 中保存。接入与同步说明见 [RESOURCE_REFRESH.md](docs/RESOURCE_REFRESH.md)。
+
+## 冰雪工作台
+
+源仓库为 `mikidaren/https-github.com-mikidaren-Project-IceWorld-Disney-Platform3-Claude`，构建版本见 `public/category/project/build.json`。产品逻辑在源仓库修改后导出到此宿主。
+
+`public/category/project/studio-theme.css` 只覆盖宿主外观。重新导出时保留四个 HTML 入口里的样式引用及 `studio-project-page` body class，图稿与原图保留原色。
+
+生成接口仍为 `/category/project/design/compose`、`draw`、`access`；`CHUNXIAO_BASE_URL`、`CHUNXIAO_TEXT_KEY`、`CHUNXIAO_IMAGE_KEY` 与资源监控配置独立。
+
+## 开发
 
 ```sh
 npm ci
 npm run build
+node --test tests/resource-usage.test.mjs
 npx wrangler pages dev dist --ip 127.0.0.1 --port 4217 --show-interactive-dev-session false
 ```
 
-本地私有变量放在被忽略的 `.dev.vars`。Pages 的请求计数按 isolate 运行，多个实例分别计数。
-
-## 🚀 一键部署指南
-
-### 1. 创建 GitHub 仓库
-
-1. 打开 https://github.com/new
-2. 仓库名：`wang-bingqi-studio`
-3. 设为 **Public**（Decap CMS 需要 public repo 才能免费工作）
-4. **不要**勾选 "Add a README"（我们会推送已有项目）
-5. 创建后复制仓库 URL
-
-### 2. 推送项目到 GitHub
-
-在本地项目目录运行：
-
-```bash
-cd E:\Code\项目1-作品集网站\..\wang-bingqi-studio
-git init
-git add .
-git commit -m "🎉 init: Astro + Decap CMS studio site"
-git remote add origin https://github.com/mikidaren/wang-bingqi-studio.git
-git push -u origin main
-```
-
-### 3. 注册 GitHub OAuth App
-
-1. 打开 https://github.com/settings/developers → **OAuth Apps** → **Register a new application**
-2. 填写：
-   - **Application name**: `Wang Bingqi Studio CMS`
-   - **Homepage URL**: `https://studio.miki2022.eu.org`
-   - **Authorization callback URL**: `https://studio.miki2022.eu.org/auth/callback`
-3. 点击 **Register application**
-4. 记下 **Client ID**（一串数字字母）
-5. 点 **Generate a new client secret**，复制 secret 并保存好
-
-### 4. 配置 Cloudflare Pages
-
-1. 打开 Cloudflare Dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
-2. 授权并选择 `wang-bingqi-studio` 仓库
-3. 构建配置：
-   - **Build command**: `npm run build`
-   - **Build output directory**: `dist`
-   - **Root directory**: （留空）
-4. 点击 **Save and Deploy**
-5. 部署完后，进入 Pages 项目 → **Settings** → **Environment Variables** → **Add variables**：
-
-   | 变量名 | 值 |
-   |---|---|
-   | `GITHUB_CLIENT_ID` | 刚才记下的 Client ID |
-   | `GITHUB_CLIENT_SECRET` | 刚才生成的 Client Secret |
-
-   > ⚠️ `GITHUB_CLIENT_SECRET` 要勾选 **Encrypt**
-
-6. 回到 Pages 项目 → **Settings** → **Functions** → 确保 **Functions** 已启用（默认开启）
-
-### 5. 绑定自定义域名
-
-1. 进入 Pages 项目 → **Custom domains** → **Set up a custom domain**
-2. 输入 `studio.miki2022.eu.org`
-3. Cloudflare 会自动添加 DNS 记录
-4. 等待 HTTPS 证书签发（约 1-2 分钟）
-
-### 6. 验证登录
-
-1. 打开 `https://studio.miki2022.eu.org/admin/`
-2. 点击 **Login with GitHub**
-3. 授权后会自动跳回后台
-4. 新建一篇文章试试，点击 **Publish**
-5. 几秒后回到首页就能看到新文章
-
-## 🧱 项目结构
-
-```
-wang-bingqi-studio/
-├── src/
-│   ├── content/
-│   │   ├── config.ts        # 内容模型定义
-│   │   └── posts/           # Markdown 文章（Decap CMS 写入这里）
-│   ├── layouts/
-│   │   └── Base.astro       # 全局布局（含顶部栏与导航）
-│   ├── pages/
-│   │   ├── index.astro      # 首页（文章列表）
-│   │   ├── 404.astro        # 404 页面
-│   │   ├── grasshopper/
-│   │   │   └── index.astro  # Grasshopper 定义库（条目在页内数组里维护）
-│   │   ├── posts/
-│   │   │   └── [...slug].astro  # 文章详情页
-│   │   └── category/
-│   │       └── [category].astro  # 分类页
-│   └── styles/
-│       └── global.css       # 全局样式（暗黑粗野风）
-├── public/
-│   ├── admin/
-│   │   ├── index.html       # Decap CMS 后台入口
-│   │   └── config.yml       # CMS 配置（连哪个仓库、字段定义）
-│   ├── grasshopper/         # .gh 定义与预览图（直接静态下载）
-│   └── assets/
-│       └── favicon.svg
-├── functions/
-│   ├── auth.js              # GitHub OAuth 入口
-│   └── auth/
-│       └── callback.js      # GitHub OAuth 回调处理
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
-```
-
-## 📝 日常使用
-
-### 写文章
-
-1. 打开 `https://studio.miki2022.eu.org/admin/`
-2. 点击 **Login with GitHub**
-3. 点击 **New Post** → 填写标题、正文、选分类
-4. 拖拽上传封面图（自动存到 `public/assets/uploads/`）
-5. 点击 **Publish** → 自动部署 → 几秒后上线
-
-### 本地预览
-
-```bash
-npm install
-npm run dev
-# → http://localhost:4321
-```
-
-### 分类说明
-
-| 分类 | 用途 |
-|---|---|
-| **Project** | 完整建筑项目展示（斜拉桥参数化、海事博物馆等） |
-| **Research** | 参数化结构 / 数字建造 / AI 辅助设计研究 |
-| **Process** | 设计过程记录与方案迭代 |
-| **Note** | 日常笔记、灵感、资源整理 |
-
-### 维护 Grasshopper 定义库
-
-`src/pages/grasshopper/index.astro` 页首有个 `definitions` 数组，加一条记录即可上线：
-
-```ts
-{
-  slug: 'my-definition',              // 对应 public/grasshopper/my-definition.gh
-  title: '中文名',
-  titleEn: 'English Name',
-  date: '2026.07.01',
-  size: '1.4 MB',
-  desc: '一句话说明',
-  preview: '/grasshopper/my-definition.png',  // 可选，没有就删掉这行
-  tags: ['Rhino 8'],
-}
-```
-
-文件名统一用**纯 ASCII**（空格、中文、多层点号会让 URL 变难读），把原始中文名写进 `title` 即可。
-
-## ⚙️ 国内可用说明
-
-- **域名**：`studio.miki2022.eu.org` 绑 Cloudflare，国内可直连
-- **CMS 脚本**：通过 jsDelivr CDN 加载（有国内节点）
-- **图片**：上传后托管在 GitHub + Cloudflare Pages 缓存
-- **如果后台加载慢**：下载 `decap-cms.js` 放到 `public/admin/` 并修改 `index.html` 指向本地文件
-
+本地私有变量使用被忽略的 `.dev.vars`。Wrangler 将 Functions 编译到 `dist/_worker.js` 并生成 `dist/_routes.json`。不完整的本地检出不能覆盖远端完整树；发布基于最新 main 的 tree 追加变更，并用 expected SHA 防止覆盖其他会话的工作。

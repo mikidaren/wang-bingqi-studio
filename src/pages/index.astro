@@ -1,33 +1,68 @@
 ---
 import Base from '../layouts/Base.astro';
-import { getCollection } from 'astro:content';
-
-const allPosts = await getCollection('posts', ({ data }) => !data.draft);
-const sortedPosts = allPosts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+import { studioProjects } from '../data/studio-projects';
+const description = `WANG BINGQI Studio：${studioProjects.map(project => project.title).join('、')}。`;
 ---
 
-<Base title="Studio" description="WANG Bingqi 建筑作品与研究笔记">
-  <section class="post-list">
-    {sortedPosts.length === 0 && (
-      <p style="color: var(--text-dim);">还没有内容。去 <a href="/admin/">管理后台</a> 写第一篇文章吧。</p>
-    )}
-
-    {sortedPosts.map((post) => (
-      <article class="post-card">
-        <h2><a href={`/posts/${post.slug}/`}>{post.data.title}</a></h2>
-        <div class="post-meta">
-          <time datetime={post.data.date.toISOString()}>
-            {post.data.date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
-          </time>
-          <span class="category">{post.data.category}</span>
+<Base title="Studio" description={description}>
+  <section class="studio-home-intro" aria-labelledby="studio-title">
+    <div><h1 id="studio-title">Studio</h1><p>项目与工具</p></div>
+    <span class="studio-home-label">WANG BINGQI</span>
+  </section>
+  <section class="studio-project-grid" aria-label="项目与工具入口">
+    {studioProjects.map(project => (
+      <a class={`studio-entry studio-entry--${project.visual || 'geometry'}`} href={project.href} aria-labelledby={`${project.id}-title`}>
+        <div class="studio-entry-art" aria-hidden="true">
+          {project.visual === 'resources' ? (
+            <svg viewBox="0 0 560 280" focusable="false">
+              <defs>
+                <linearGradient id={`${project.id}-face`} x1="0" y1="0" x2="1" y2="1"><stop stop-color="#303030" /><stop offset="1" stop-color="#151515" /></linearGradient>
+                <linearGradient id={`${project.id}-top`} x1="0" y1="0" x2="0" y2="1"><stop stop-color="#555" /><stop offset="1" stop-color="#2b2b2b" /></linearGradient>
+              </defs>
+              <g fill="none" stroke="#262626" stroke-width="1"><path d="m56 213 224-112 224 112M96 233l224-112M136 253l224-112M184 269l216-108M464 233 240 121M424 253 200 141M376 269 160 161" /></g>
+              <g fill="none" stroke="#5f5f5f" stroke-width="1.2"><path d="m159 194 121 59 121-59M280 190v63" /><path stroke-dasharray="3 5" d="M160 128v32m240-32v32" /></g>
+              <g stroke="#757575" stroke-width="1.1" stroke-linejoin="round">
+                <path d="m222 94 58-29 58 29-58 29Z" fill={`url(#${project.id}-top)`} /><path d="m222 94 58 29v67l-58-29Z" fill={`url(#${project.id}-face)`} /><path d="m280 123 58-29v67l-58 29Z" fill="#1b1b1b" />
+                <path d="m228 116 46 23m-46-7 46 23m-46-7 46 23m12-32 46-23m-46 39 46-23m-46 39 46-23" fill="none" stroke="#4f4f4f" />
+                <path d="m120 175 39-19 39 19-39 20Z" fill="#363636" /><path d="m120 175 39 20v34l-39-20Z" fill="#222" /><path d="m159 195 39-20v34l-39 20Z" fill="#181818" />
+                <path d="m362 175 39-19 39 19-39 20Z" fill="#363636" /><path d="m362 175 39 20v34l-39-20Z" fill="#222" /><path d="m401 195 39-20v34l-39 20Z" fill="#181818" />
+              </g>
+              <g stroke="#a0a0a0" stroke-width="1.2" fill="none" stroke-linecap="round">
+                <path d="m234 110 13 6m40 47 12-6m-161 35 12 6m263 0 12-6" /><path d="M130 109h51a15 15 0 0 0 1-30 22 22 0 0 0-42-7 18 18 0 0 0-10 37Z" />
+                <rect x="375" y="74" width="49" height="34" rx="5" /><path d="M389 83v16m10-16v16m10-16v16m-23 9v7m10-7v7m10-7v7m10-7v7" stroke="#858585" />
+              </g>
+              <path d="M280 34v12m-6-6h12" stroke="#5f5f5f" stroke-width="1" /><circle cx="280" cy="216" r="3" fill="#a0a0a0" />
+            </svg>
+          ) : project.visual === 'ice' ? (
+            <svg viewBox="0 0 560 280" focusable="false">
+              <defs><linearGradient id={`${project.id}-ice`} x1="0" y1="0" x2="0" y2="1"><stop stop-color="#5d5d5d" stop-opacity=".75" /><stop offset="1" stop-color="#222" stop-opacity=".85" /></linearGradient></defs>
+              <g fill="none" stroke="#292929" stroke-width="1"><path d="m72 230 208-71 208 71-208 35Z" /><path d="m112 244 208-71m-160 81 208-71m80 61-208-71m160 81-208-71" /></g>
+              <g stroke="#808080" stroke-width="1.1" stroke-linejoin="round" fill={`url(#${project.id}-ice)`}>
+                <path d="M203 211V112l77-54 77 54v99Z" /><path d="m203 112 77 28 77-28M280 58v82" fill="none" />
+                <path d="M227 218v-75l53-24 53 24v75" /><path d="M253 218v-47a27 27 0 0 1 54 0v47" fill="#111" />
+                <path d="m139 210 32-12V98l-16-32-16 32Zm32-12 32 13v-97l-32-16" /><path d="m139 98 32 11 32 5m-32-16v100" fill="none" />
+                <path d="m357 211 32-13V98l16-32 16 32v112l-32-12" /><path d="m357 114 32-16 32 11m-32-11v100" fill="none" />
+                <path d="m105 219 34-9v-59l-17-20-17 20Zm316-9 34 9v-68l-17-20-17 20Z" />
+              </g>
+              <g stroke="#6c6c6c" stroke-width="1" fill="none">
+                <path d="M151 113v84m38-70v71m182-71v71m38-85v84M215 128v72m130-72v72m-112-43v53m94-53v53" />
+                <path d="m139 133 32 11 32 5m-64 20 32 10 32 4m154-34 32-16 32 11m-64 39 32-14 32 10M105 171l34-9m282 0 34 9" />
+                <path d="m203 211 24 7h106l24-7M227 225h106M239 232h82" stroke="#9e9e9e" /><path d="m280 69-53 43 53 18 53-18Z" stroke="#9b9b9b" />
+              </g>
+              <g stroke="#696969" stroke-width="1" stroke-linecap="round"><path d="M103 74v12m-6-6h12M454 68v10m-5-5h10M334 41v8m-4-4h8" /></g>
+            </svg>
+          ) : (
+            <svg viewBox="0 0 560 280" focusable="false"><g fill="none" stroke="#343434"><path d="m100 212 180-105 180 105-180 42Z" /><path d="M140 230 320 125m100 105L240 125" /></g><g fill="#222" stroke="#898989" stroke-width="1.1"><path d="m210 113 70-40 70 40-70 40Z" /><path d="m210 113 70 40v76l-70-40Z" /><path d="m280 153 70-40v76l-70 40Z" /></g><path d="m240 109 40-22 40 22-40 23Z" fill="none" stroke="#b0b0b0" /></svg>
+          )}
+          <span class="studio-art-corner studio-art-corner--tl"></span><span class="studio-art-corner studio-art-corner--br"></span>
         </div>
-        {post.data.description && <p>{post.data.description}</p>}
-        {post.data.tags && post.data.tags.length > 0 && (
-          <div class="tags">
-            {post.data.tags.map(tag => <span class="tag">{tag}</span>)}
-          </div>
-        )}
-      </article>
+        <div class="studio-entry-body">
+          <span class="studio-entry-eyebrow">{project.eyebrow}</span>
+          <h2 id={`${project.id}-title`}>{project.title}</h2>
+          <p>{project.description}</p>
+          <span class="studio-entry-action">{project.action || '进入项目'}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></span>
+        </div>
+      </a>
     ))}
   </section>
 </Base>

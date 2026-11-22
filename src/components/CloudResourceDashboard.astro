@@ -128,13 +128,14 @@ const recordedTime = (resource: Resource & { metrics: ResourceMetricData[] }) =>
       <a class="cloud-brand" href="https://miki2022.eu.org/">WANG BINGQI</a>
       <nav class="cloud-site-nav" aria-label="网站导航">
         <a href="/">Studio</a>
-        <a href="/category/process" aria-current="page">Process</a>
+        <a href="/category/process/" aria-current="page">云资源</a>
       </nav>
     </header>
 
     <main class="cloud-main" id="cloud-resources">
       <div class="cloud-page-heading">
         <h1>云资源 <span class="cloud-result-count" data-result-count role="status" aria-live="polite" aria-atomic="true" aria-label={`${resources.length} 项资源`}>{resources.length}</span></h1>
+        <div class="cloud-refresh-controls"><span data-usage-refresh-status role="status" hidden></span><button type="button" class="cloud-refresh-button" data-refresh-usage disabled><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-reset" /></svg>刷新用量</button></div>
       </div>
 
       <section class="cloud-resource-section" aria-label="资源清单">
@@ -155,12 +156,12 @@ const recordedTime = (resource: Resource & { metrics: ResourceMetricData[] }) =>
           {resources.map(resource => {
             const time = recordedTime(resource);
             const linkLabel = resource.consoleUrl ? (resource.consoleLabel || '打开控制台') : '查看说明';
-            return <article class="cloud-resource-card" data-resource-card data-category={resource.category} data-search={searchText(resource)} style={`--resource-accent: ${resource.id === 'instabox-free' ? '#ee690b' : resource.accent}`} aria-labelledby={`resource-title-${resource.id}`}>
+            return <article class="cloud-resource-card" data-resource-card data-resource-id={resource.id} data-category={resource.category} data-search={searchText(resource)} style={`--resource-accent: ${resource.id === 'instabox-free' ? '#ee690b' : resource.accent}`} aria-labelledby={`resource-title-${resource.id}`}>
               <div class="cloud-card-main">
                 <div class="cloud-card-header">
                   <div class="cloud-provider-icon" aria-hidden="true">{resource.id === 'instabox-free' ? 'I' : resource.initials}</div>
                   <div class="cloud-card-identity">
-                    <div class="cloud-card-title-row"><h2 id={`resource-title-${resource.id}`}>{resource.name}</h2><span class="cloud-claim-badge"><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-check" /></svg>已领取</span></div>
+                    <div class="cloud-card-title-row"><h2 id={`resource-title-${resource.id}`}>{resource.name}</h2><span class="cloud-claim-badge"><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-check" /></svg>已领取</span><span class="cloud-state-badge" data-resource-state hidden></span></div>
                     <div class="cloud-provider-meta"><span class="cloud-provider-name">{resource.provider}</span>{purposes[resource.id] && <span class="cloud-card-purpose">{purposes[resource.id]}</span>}</div>
                   </div>
                 </div>
@@ -178,9 +179,16 @@ const recordedTime = (resource: Resource & { metrics: ResourceMetricData[] }) =>
 
     <footer class="cloud-page-footer"><p>{resources.length} 项资源<span aria-hidden="true">·</span>{categories.length} 类</p><a href="/">Studio<svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-arrow-up-right" /></svg></a></footer>
   </div>
+  <template data-usage-metric-template>
+    <div class="cloud-metric" role="group">
+      <div class="cloud-metric-top"><span class="cloud-metric-label"><svg class="cloud-icon" aria-hidden="true"><use href="#cloud-icon-spark" /></svg><span data-metric-label></span></span><strong class="cloud-metric-value"></strong></div>
+      <div class="cloud-metric-visual"><div class="cloud-usage-bar cloud-usage-bar--dynamic"><span></span></div><div class="cloud-usage-scale"><span></span><span></span></div><div class="cloud-capacity-line" aria-hidden="true"></div></div>
+    </div>
+  </template>
 </div>
 
 <script>
+  import { startUsageRefresh } from '../scripts/resource-usage';
   function initializeCloudDashboard() {
     const root = document.querySelector<HTMLElement>('[data-cloud-dashboard]');
     if (!root || root.dataset.cloudReady === 'true') return;
@@ -242,7 +250,9 @@ const recordedTime = (resource: Resource & { metrics: ResourceMetricData[] }) =>
       searchInput.focus();
     }));
     root.dataset.cloudReady = 'true';
+    root.addEventListener('cloud:usage-updated', updateResults);
     updateResults();
+    startUsageRefresh(root);
   }
   initializeCloudDashboard();
   document.addEventListener('astro:page-load', initializeCloudDashboard);
