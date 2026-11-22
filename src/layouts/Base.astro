@@ -1,14 +1,20 @@
 ---
 import '../styles/global.css';
+import { studioProjects } from '../data/studio-projects';
 
 export interface Props {
   title: string;
   description?: string;
+  robots?: string;
 }
 
-const { title, description } = Astro.props;
-const siteTitle = 'WANG Bingqi · Studio';
-const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
+const { title, description = 'WANG BINGQI Studio — 项目与工具', robots } = Astro.props;
+const fullTitle = title === 'Studio' ? 'Studio — WANG BINGQI' : `${title} — WANG BINGQI Studio`;
+const pathname = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isCurrent = (href: string) => {
+  const path = href.replace(/\/+$/, '') || '/';
+  return pathname === path || (path !== '/' && pathname.startsWith(`${path}/`));
+};
 ---
 
 <!doctype html>
@@ -16,43 +22,28 @@ const fullTitle = title ? `${title} — ${siteTitle}` : siteTitle;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content={description || 'WANG Bingqi — Architecture Design Studio'} />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#000000" />
+    {robots && <meta name="robots" content={robots} />}
     <title>{fullTitle}</title>
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
   </head>
-  <body>
-    <div class="top-bar">
-      <div class="container top-bar-inner">
-        <span class="top-bar-label">Studio</span>
-        <a href="https://miki2022.eu.org" class="top-bar-link">Portfolio →</a>
-      </div>
-    </div>
-    <header>
-      <div class="container">
-        <h1><a href="/">WANG Bingqi</a></h1>
-        <div class="subtitle">Architecture Design Studio</div>
-        <nav>
-          <a href="/">Projects & Notes</a>
-          <a href="/category/project">Projects</a>
-          <a href="/category/research">Research</a>
-          <a href="/category/process">Process</a>
-          <a href="/grasshopper">Grasshopper</a>
+  <body class="studio-page">
+    <a class="studio-skip-link" href="#main-content">跳至内容</a>
+    <header class="studio-site-header">
+      <div class="studio-container studio-header-inner">
+        <a href="/" class="studio-wordmark" aria-label="WANG BINGQI Studio 首页">WANG BINGQI</a>
+        <nav class="studio-site-nav" aria-label="Studio 入口">
+          {studioProjects.map(project => <a href={project.href} aria-current={isCurrent(project.href) ? 'page' : undefined}>{project.title}</a>)}
         </nav>
       </div>
     </header>
-
-    <main>
-      <div class="container">
-        <slot />
-      </div>
-    </main>
-
-    <footer>
-      <div class="container">
-        <p>© {new Date().getFullYear()} WANG Bingqi · Built with Astro</p>
+    <main id="main-content" class="studio-site-main"><div class="studio-container"><slot /></div></main>
+    <footer class="studio-site-footer">
+      <div class="studio-container studio-footer-inner">
+        <p>© {new Date().getFullYear()} WANG BINGQI <span aria-hidden="true">/</span> Studio</p>
+        <a href="https://miki2022.eu.org/" target="_blank" rel="noopener noreferrer" aria-label="打开主站（新标签页）">主站<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10" /></svg></a>
       </div>
     </footer>
-
-    <a href="/admin/" class="admin-badge" title="管理后台">✎ Admin</a>
   </body>
 </html>

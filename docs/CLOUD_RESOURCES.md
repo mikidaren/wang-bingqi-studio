@@ -4,7 +4,7 @@
 
 ## 页面与数据
 
-`src/pages/category/process.astro` 是固定的 Astro 路由。卡片与筛选来自 `src/components/CloudResourceDashboard.astro`；样式独立于其他页面。Process 文章继续显示在资源面板下方。
+`src/pages/category/process.astro` 是固定的 Astro 路由。卡片与筛选来自 `src/components/CloudResourceDashboard.astro`；样式独立于其他页面。页面仅展示云资源，原文章入口已移除。用量接口、刷新和公开快照维护见 [RESOURCE_REFRESH.md](RESOURCE_REFRESH.md)。
 
 `src/data/cloud-resources.json` 保存经过白名单导出的资源快照。网页只呈现已领取、未标记为已结束或受限、且至少有一项明确配置或额度的资源。已注册但未领取的资源不渲染；原始台账保留完整记录。
 
@@ -68,7 +68,7 @@ npm run build
 - 缺少数据的指标不输出占位内容，不推算资源使用百分比。
 - 用量快照显示其原始观测时间。
 - 360px 起采用单列卡片，宽屏采用两列，分类标签可横向浏览。
-- 维护时保留固定路由，并在动态 `[category].astro` 中排除 `process`。
+- 维护时保留固定的 `/category/process/` 路由；原动态分类路由已移除。用量刷新按 [RESOURCE_REFRESH.md](RESOURCE_REFRESH.md) 维护。
 
 ## 2026-11-23 历史版本验收记录
 

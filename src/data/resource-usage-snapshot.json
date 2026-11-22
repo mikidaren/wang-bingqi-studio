@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "resources": [
+    {
+      "id": "firecrawl-free",
+      "checkedAt": "2026-11-22T22:42:29Z",
+      "metrics": [
+        {
+          "key": "credits",
+          "label": "剩余额度",
+          "kind": "quota",
+          "mode": "balance",
+          "displayValue": "1,025 credits",
+          "remaining": 1025,
+          "unit": "credits",
+          "basis": "observed",
+          "checkedAt": "2026-11-22T22:42:29Z"
+        },
+        {
+          "key": "plan_credits",
+          "label": "账期额度",
+          "kind": "quota",
+          "mode": "capacity",
+          "displayValue": "1,000 credits",
+          "value": 1000,
+          "unit": "credits",
+          "basis": "observed",
+          "checkedAt": "2026-11-22T22:42:29Z"
+        }
+      ]
+    }
+  ]
+}

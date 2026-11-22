@@ -44,7 +44,7 @@ const description = [label, metric.displayValue, basis,
 ].filter(Boolean).join('；');
 ---
 {visible && (
-  <div class:list={['cloud-metric', `cloud-metric--${metric.kind}`, `cloud-metric--${metric.mode}`]} data-metric-mode={metric.mode} data-metric-kind={metric.kind} data-metric-basis={metric.basis} data-metric-percent={percent === null ? undefined : String(percent)} role="group" aria-labelledby={titleId} title={description}>
+  <div class:list={['cloud-metric', `cloud-metric--${metric.kind}`, `cloud-metric--${metric.mode}`]} data-metric-key={metric.key} data-metric-mode={metric.mode} data-metric-kind={metric.kind} data-metric-basis={metric.basis} data-metric-percent={percent === null ? undefined : String(percent)} role="group" aria-labelledby={titleId} title={description}>
     <div class="cloud-metric-top">
       <span class="cloud-metric-label" id={titleId}><svg class="cloud-icon" aria-hidden="true"><use href={`#cloud-icon-${icon}`} /></svg>{label}</span>
       <strong class:list={['cloud-metric-value', { 'cloud-metric-value--compact': metric.displayValue.length > 16 }]}>{metric.displayValue}</strong>

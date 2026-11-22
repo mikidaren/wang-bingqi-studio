@@ -1,10 +1,15 @@
 ---
-import { getCollection } from 'astro:content';
 import CloudResourceDashboard from '../../components/CloudResourceDashboard.astro';
-import dashboard from '../../data/cloud-resources.json';
+import catalog from '../../data/cloud-resources.json';
+import snapshot from '../../data/resource-usage-snapshot.json';
 
-const posts = (await getCollection('posts', ({ data }) => !data.draft && data.category === 'process'))
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const dashboard = { ...catalog, resources: catalog.resources.map(resource => {
+  const update = snapshot.resources.find(item => item.id === resource.id);
+  if (!update) return resource;
+  const metrics = new Map((resource.metrics || []).map(metric => [metric.key, metric]));
+  for (const metric of update.metrics) metrics.set(metric.key, metric);
+  return { ...resource, metrics: [...metrics.values()] };
+}) };
 ---
 
 <!doctype html>
@@ -14,26 +19,11 @@ const posts = (await getCollection('posts', ({ data }) => !data.draft && data.ca
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="我的云资源：已领取资源的配置、额度与控制台入口。" />
     <meta name="theme-color" content="#000000" />
-    <title>云资源 · Process — WANG Bingqi Studio</title>
+    <title>云资源 — WANG Bingqi Studio</title>
     <link rel="canonical" href="https://studio.miki2022.eu.org/category/process/" />
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
   </head>
   <body class="cloud-resources-page">
-    <CloudResourceDashboard dashboard={dashboard} showPosts={posts.length > 0}>
-      {posts.length > 0 && (
-        <section slot="posts" class="process-notes" aria-labelledby="process-notes-title">
-          <h2 id="process-notes-title">过程记录</h2>
-          {posts.map(post => (
-            <article>
-              <h3><a href={`/posts/${post.slug}/`}>{post.data.title}</a></h3>
-              <time datetime={post.data.date.toISOString()}>
-                {post.data.date.toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai', year: 'numeric', month: 'long', day: 'numeric' })}
-              </time>
-              {post.data.description && <p>{post.data.description}</p>}
-            </article>
-          ))}
-        </section>
-      )}
-    </CloudResourceDashboard>
+    <CloudResourceDashboard dashboard={dashboard} />
   </body>
 </html>
