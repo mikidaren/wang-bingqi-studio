@@ -156,25 +156,25 @@ function sumField(rows, field, group = 'sum') {
 export function normalizeCloudflareWorkers(body, { now = new Date() } = {}) {
   const rows = cloudflareRows(body, 'workersInvocationsAdaptive');
   const value = sumField(rows, 'requests');
-  return value === null ? [] : [absoluteMetric('today_requests', '今日请求', 'requests',
-    value, 'requests', iso(now), 'UTC 00:00 起')];
+  return value === null ? [] : [absoluteMetric('today_requests', '请求用量', 'requests',
+    value, 'requests', iso(now), `${iso(now).slice(0, 10)} · UTC`)];
 }
 
 export function normalizeCloudflareKV(body, { now = new Date() } = {}) {
   const rows = cloudflareRows(body, 'kvOperationsAdaptiveGroups');
   if (!rows || rows.some(row => typeof row.dimensions?.actionType !== 'string')) return [];
-  return [['read', 'today_reads', '今日读取'], ['write', 'today_writes', '今日写入']].flatMap(([action, key, label]) => {
+  return [['read', 'today_reads', '读取'], ['write', 'today_writes', '写入']].flatMap(([action, key, label]) => {
     const value = sumField(rows.filter(row => row.dimensions.actionType === action), 'requests');
-    return value === null ? [] : [absoluteMetric(key, label, 'requests', value, 'operations', iso(now), 'UTC 00:00 起')];
+    return value === null ? [] : [absoluteMetric(key, label, 'requests', value, 'operations', iso(now), `${iso(now).slice(0, 10)} · UTC`)];
   });
 }
 
 export function normalizeCloudflareD1(body, { now = new Date() } = {}) {
   const rows = cloudflareRows(body, 'd1AnalyticsAdaptiveGroups');
-  return [['rowsRead', 'today_rows_read', '今日读取行数'], ['rowsWritten', 'today_rows_written', '今日写入行数']]
+  return [['rowsRead', 'today_rows_read', '读取行数'], ['rowsWritten', 'today_rows_written', '写入行数']]
     .flatMap(([field, key, label]) => {
       const value = sumField(rows, field);
-      return value === null ? [] : [absoluteMetric(key, label, 'requests', value, 'rows', iso(now), 'UTC 00:00 起')];
+      return value === null ? [] : [absoluteMetric(key, label, 'requests', value, 'rows', iso(now), `${iso(now).slice(0, 10)} · UTC`)];
     });
 }
 

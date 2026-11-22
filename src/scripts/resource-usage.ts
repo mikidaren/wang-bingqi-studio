@@ -22,10 +22,89 @@ export function startUsageRefresh(root: HTMLElement) {
   });
   let busy = false;
   let timer: ReturnType<typeof setTimeout>;
+  let expiryTimer: ReturnType<typeof setTimeout> | undefined;
   let interval = 60_000;
   let disposed = false;
   let controller: AbortController | null = null;
   const timeFormatter = new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+
+  function updateSearch(card: HTMLElement) {
+    const visibleText = ['h2', '.cloud-provider-name', '.cloud-card-purpose']
+      .map(selector => card.querySelector<HTMLElement>(selector)?.textContent || '');
+    card.querySelectorAll<HTMLElement>('.cloud-metric').forEach(metric => {
+      if (metric.hidden) return;
+      visibleText.push(metric.querySelector<HTMLElement>('.cloud-metric-label')?.textContent || '',
+        metric.querySelector<HTMLElement>('.cloud-metric-value')?.textContent || '');
+    });
+    const badge = card.querySelector<HTMLElement>('[data-resource-state]');
+    if (badge && !badge.hidden) visibleText.push(badge.textContent || '');
+    card.dataset.search = visibleText.join(' ').normalize('NFKC').toLocaleLowerCase();
+  }
+
+  function clearState(badge: HTMLElement) {
+    const changed = !badge.hidden || Boolean(badge.textContent) || Boolean(badge.dataset.stateCheckedAt);
+    badge.hidden = true;
+    badge.textContent = '';
+    delete badge.dataset.stateCheckedAt;
+    return changed;
+  }
+
+  function expireObserved() {
+    clearTimeout(expiryTimer);
+    expiryTimer = undefined;
+    if (disposed) return;
+    const card = root.querySelector<HTMLElement>('[data-resource-id="instabox-free"]');
+    const grid = card?.querySelector<HTMLElement>('.cloud-metric-grid');
+    if (!card || !grid) return;
+    const freshness: Record<string, number> = { cpu: 120_000, memory: 120_000, storage: 600_000 };
+    let nextExpiry = Infinity;
+    let changed = false;
+    const now = Date.now();
+
+    grid.querySelectorAll<HTMLElement>('[data-metric-basis="observed"]').forEach(metric => {
+      const key = metric.dataset.metricKey || '';
+      if (!freshness[key]) return;
+      const checkedAt = metric.dataset.metricCheckedAt;
+      const expiresAt = validTime(checkedAt) ? Date.parse(checkedAt!) + freshness[key] : now;
+      if (expiresAt <= now) {
+        const original = originals.get('instabox-free')?.querySelector<HTMLElement>(`[data-metric-key="${key}"]`);
+        original ? metric.replaceWith(original.cloneNode(true)) : metric.remove();
+        changed = true;
+      } else {
+        nextExpiry = Math.min(nextExpiry, expiresAt);
+      }
+    });
+
+    const badge = card.querySelector<HTMLElement>('[data-resource-state]');
+    if (badge && !badge.hidden) {
+      const checkedAt = badge.dataset.stateCheckedAt;
+      const expiresAt = validTime(checkedAt) ? Date.parse(checkedAt!) + 120_000 : now;
+      if (expiresAt <= now) changed = clearState(badge) || changed;
+      else nextExpiry = Math.min(nextExpiry, expiresAt);
+    } else if (badge) {
+      changed = clearState(badge) || changed;
+    }
+
+    if (changed) {
+      const date = card.querySelector<HTMLElement>('.cloud-record-date');
+      const latest = Array.from(grid.querySelectorAll<HTMLElement>('[data-metric-basis="observed"]'))
+        .map(metric => metric.dataset.metricCheckedAt).filter(validTime)
+        .sort((a, b) => Date.parse(b!) - Date.parse(a!))[0];
+      if (date && latest) {
+        const time = document.createElement('time');
+        time.dateTime = latest;
+        time.title = new Date(latest).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+        time.textContent = timeFormatter.format(new Date(latest));
+        date.replaceChildren(document.createTextNode('更新于 '), time);
+      } else {
+        const originalDate = originalDates.get('instabox-free');
+        if (date && originalDate) date.replaceChildren(...Array.from(originalDate.cloneNode(true).childNodes));
+      }
+      updateSearch(card);
+      root.dispatchEvent(new Event('cloud:usage-updated'));
+    }
+    if (Number.isFinite(nextExpiry)) expiryTimer = setTimeout(expireObserved, Math.max(1, nextExpiry - Date.now()));
+  }
 
   function renderMetric(resourceId: string, metric: Metric) {
     if (metric.basis !== 'observed' || !['usage', 'balance', 'capacity'].includes(metric.mode)
@@ -37,6 +116,7 @@ export function startUsageRefresh(root: HTMLElement) {
     const label = metric.mode === 'balance' ? '剩余额度' : metric.key === 'plan_credits' ? '账期额度' : metric.label;
     element.classList.add(`cloud-metric--${metric.kind}`, `cloud-metric--${metric.mode}`);
     Object.assign(element.dataset, { metricKey: metric.key, metricMode: metric.mode, metricKind: metric.kind, metricBasis: 'observed' });
+    if (validTime(metric.checkedAt)) element.dataset.metricCheckedAt = metric.checkedAt!;
     const labelElement = element.querySelector<HTMLElement>('[data-metric-label]')!;
     labelElement.id = `${resourceId}-metric-${metric.key}`;
     labelElement.textContent = label;
@@ -71,6 +151,7 @@ export function startUsageRefresh(root: HTMLElement) {
   }
 
   async function refresh(manual = false) {
+    expireObserved();
     if (busy || disposed || (!manual && document.hidden)) return;
     busy = true;
     refreshButton!.disabled = true;
@@ -99,7 +180,7 @@ export function startUsageRefresh(root: HTMLElement) {
         for (const metric of resource.metrics as Metric[]) {
           if (resource.id === 'instabox-free') {
             const freshness = ['cpu', 'memory'].includes(metric.key) ? 120_000 : 600_000;
-            if (!validTime(metric.checkedAt) || Date.now() - Date.parse(metric.checkedAt!) > freshness) continue;
+            if (!validTime(metric.checkedAt) || Date.now() - Date.parse(metric.checkedAt!) >= freshness) continue;
             if (['paused', 'stopped'].includes(resource.state) && ['cpu', 'memory'].includes(metric.key)) continue;
           }
           const element = renderMetric(resource.id, metric);
@@ -109,9 +190,10 @@ export function startUsageRefresh(root: HTMLElement) {
           if (validTime(metric.checkedAt) && (!latest || Date.parse(metric.checkedAt!) > Date.parse(latest))) latest = metric.checkedAt!;
         }
         const stateBadge = card.querySelector<HTMLElement>('[data-resource-state]');
-        if (stateBadge) stateBadge.hidden = true;
+        if (stateBadge) clearState(stateBadge);
         if (stateBadge && validTime(resource.checkedAt) && Date.now() - Date.parse(resource.checkedAt) < 120_000 && ['running', 'paused', 'stopped'].includes(resource.state)) {
           stateBadge.textContent = ({ running: '运行中', paused: '已暂停', stopped: '已停止' } as Record<string, string>)[resource.state];
+          stateBadge.dataset.stateCheckedAt = resource.checkedAt;
           stateBadge.hidden = false;
         }
         const date = card.querySelector<HTMLElement>('.cloud-record-date');
@@ -122,7 +204,7 @@ export function startUsageRefresh(root: HTMLElement) {
           time.textContent = timeFormatter.format(new Date(latest));
           date.replaceChildren(document.createTextNode('更新于 '), time);
         }
-        card.dataset.search = card.textContent?.normalize('NFKC').toLocaleLowerCase() || '';
+        updateSearch(card);
       }
       interval = Math.max(60, Number(data.refreshAfterSeconds) || 60) * 1000;
       status!.hidden = false;
@@ -135,13 +217,17 @@ export function startUsageRefresh(root: HTMLElement) {
       busy = false;
       refreshButton!.disabled = false;
       refreshButton!.removeAttribute('aria-busy');
-      if (!disposed) { clearTimeout(timer); timer = setTimeout(() => refresh(), interval); }
+      if (!disposed) {
+        expireObserved();
+        clearTimeout(timer);
+        timer = setTimeout(() => refresh(), interval);
+      }
     }
   }
-  const onVisibility = () => { if (!document.hidden) void refresh(); };
+  const onVisibility = () => { expireObserved(); if (!document.hidden) void refresh(); };
   refreshButton.disabled = false;
   refreshButton.addEventListener('click', () => void refresh(true));
   document.addEventListener('visibilitychange', onVisibility);
-  document.addEventListener('astro:before-swap', () => { disposed = true; clearTimeout(timer); controller?.abort(); document.removeEventListener('visibilitychange', onVisibility); }, { once: true });
+  document.addEventListener('astro:before-swap', () => { disposed = true; clearTimeout(timer); clearTimeout(expiryTimer); controller?.abort(); document.removeEventListener('visibilitychange', onVisibility); }, { once: true });
   void refresh();
 }

@@ -168,7 +168,7 @@ test('Workers aggregates only numeric counts and preserves a real zero', () => {
   assert.equal(metric.used, 0);
   assert.equal(metric.limit, undefined);
   assert.equal(metric.percent, undefined);
-  assert.equal(metric.periodLabel, 'UTC 00:00 起');
+  assert.equal(metric.periodLabel, '2026-11-22 · UTC');
   assert.equal(normalizeCloudflareWorkers(graphql('workersInvocationsAdaptive',
     [{ sum: { requests: 2 } }, { sum: { requests: 3 } }]), { now })[0].used, 5);
   assert.deepEqual(normalizeCloudflareWorkers(graphql('workersInvocationsAdaptive',
