@@ -3,7 +3,7 @@
   "resources": [
     {
       "id": "firecrawl-free",
-      "checkedAt": "2026-11-22T23:15:20Z",
+      "checkedAt": "2026-11-22T23:57:28.397Z",
       "metrics": [
         {
           "key": "credits",
@@ -16,7 +16,8 @@
           "referenceLabel": "账期额度",
           "unit": "credits",
           "basis": "observed",
-          "checkedAt": "2026-11-22T23:15:20Z"
+          "checkedAt": "2026-11-22T23:57:28.397Z",
+          "periodLabel": "2026-11-08 09:02 – 2026-12-08 09:02 UTC"
         },
         {
           "key": "plan_credits",
@@ -27,9 +28,11 @@
           "value": 1000,
           "unit": "credits",
           "basis": "observed",
-          "checkedAt": "2026-11-22T23:15:20Z"
+          "checkedAt": "2026-11-22T23:57:28.397Z"
         }
-      ]
+      ],
+      "billingPeriodStart": "2026-11-08T09:02:09.578Z",
+      "billingPeriodEnd": "2026-12-08T09:02:09.578Z"
     },
     {
       "id": "github-actions-compute",
