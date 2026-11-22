@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "updatedAt": "2026-11-23",
-  "sourceCheckedAt": "2026-11-22T20:58:40Z",
-  "notice": "依据领取与注册记录整理。配置和方案额度为记录信息；当前运行状态与账户余额未实时查询。",
+  "sourceCheckedAt": "2026-11-22T21:56:45Z",
+  "notice": "硬件与方案额度按记录展示；用量保留账户快照的观测时间，未观测项不推算。",
   "summary": {
     "claimed": 15,
     "registered": 13,
@@ -66,7 +66,46 @@
       "availability": "restricted",
       "availabilityLabel": "当前受限",
       "consoleUrl": "https://github.com/settings/billing",
-      "consoleLabel": "查看账户用量"
+      "consoleLabel": "查看账户用量",
+      "metrics": [
+        {
+          "key": "cpu",
+          "label": "CPU",
+          "kind": "cpu",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        },
+        {
+          "key": "memory",
+          "label": "内存",
+          "kind": "memory",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        },
+        {
+          "key": "storage",
+          "label": "存储",
+          "kind": "storage",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        },
+        {
+          "key": "gpu",
+          "label": "GPU",
+          "kind": "gpu",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "cloudflare-quick-tunnel",
@@ -97,7 +136,28 @@
       "evidenceType": "runtime",
       "evidenceLabel": "历史运行记录",
       "availability": "historical",
-      "availabilityLabel": "历史临时使用"
+      "availabilityLabel": "历史临时使用",
+      "metrics": [
+        {
+          "key": "requests",
+          "label": "请求用量",
+          "kind": "requests",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        },
+        {
+          "key": "traffic",
+          "label": "传输流量",
+          "kind": "network",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "kaggle-gpu",
@@ -130,7 +190,48 @@
       "availability": "recorded",
       "availabilityLabel": "已有运行记录",
       "consoleUrl": "https://www.kaggle.com/code",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "cpu",
+          "label": "CPU",
+          "kind": "cpu",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        },
+        {
+          "key": "memory",
+          "label": "内存",
+          "kind": "memory",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        },
+        {
+          "key": "storage",
+          "label": "存储",
+          "kind": "storage",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        },
+        {
+          "key": "gpu",
+          "label": "GPU",
+          "kind": "gpu",
+          "mode": "capacity",
+          "displayValue": "T4 × 2",
+          "basis": "recorded-config",
+          "note": "历史运行配置；每张 16 GB 显存，当前分配与占用未观测。",
+          "value": 2,
+          "unit": "GPU"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "colab-free",
@@ -163,7 +264,46 @@
       "availability": "recorded",
       "availabilityLabel": "已有运行记录",
       "consoleUrl": "https://colab.research.google.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "cpu",
+          "label": "CPU",
+          "kind": "cpu",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        },
+        {
+          "key": "memory",
+          "label": "内存",
+          "kind": "memory",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        },
+        {
+          "key": "storage",
+          "label": "存储",
+          "kind": "storage",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        },
+        {
+          "key": "gpu",
+          "label": "GPU / TPU",
+          "kind": "gpu",
+          "mode": "capacity",
+          "displayValue": "T4 / TPU v5 lite",
+          "basis": "recorded-config",
+          "note": "分别来自历史会话；当前硬件按会话分配。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "google-cloud-shell",
@@ -196,7 +336,48 @@
       "availability": "recorded",
       "availabilityLabel": "已有运行记录",
       "consoleUrl": "https://shell.cloud.google.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "cpu",
+          "label": "CPU",
+          "kind": "cpu",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        },
+        {
+          "key": "memory",
+          "label": "内存",
+          "kind": "memory",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        },
+        {
+          "key": "storage",
+          "label": "HOME 存储",
+          "kind": "storage",
+          "mode": "capacity",
+          "displayValue": "5 GB",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 5,
+          "unit": "GB"
+        },
+        {
+          "key": "gpu",
+          "label": "GPU",
+          "kind": "gpu",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "cloudflare-workers",
@@ -229,7 +410,32 @@
       "availability": "recorded",
       "availabilityLabel": "已有运行记录",
       "consoleUrl": "https://dash.cloudflare.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "requests",
+          "label": "请求额度",
+          "kind": "requests",
+          "mode": "capacity",
+          "displayValue": "100,000 次 / 日",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 100000,
+          "unit": "requests"
+        },
+        {
+          "key": "cpu_time",
+          "label": "CPU 时间",
+          "kind": "cpu",
+          "mode": "capacity",
+          "displayValue": "10 ms / 请求",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 10,
+          "unit": "ms"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "hf-zerogpu",
@@ -262,7 +468,30 @@
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://huggingface.co/settings/profile",
-      "consoleLabel": "打开账户设置"
+      "consoleLabel": "打开账户设置",
+      "metrics": [
+        {
+          "key": "gpu_minutes",
+          "label": "GPU 时长",
+          "kind": "runtime",
+          "mode": "capacity",
+          "displayValue": "5 分钟 / 日",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 5,
+          "unit": "minutes"
+        },
+        {
+          "key": "gpu",
+          "label": "GPU 配置",
+          "kind": "gpu",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "cloudflare-pages",
@@ -295,7 +524,30 @@
       "availability": "recorded",
       "availabilityLabel": "已有运行记录",
       "consoleUrl": "https://dash.cloudflare.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "builds",
+          "label": "构建额度",
+          "kind": "quota",
+          "mode": "capacity",
+          "displayValue": "500 次 / 月",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 500,
+          "unit": "builds"
+        },
+        {
+          "key": "build_usage",
+          "label": "已用构建",
+          "kind": "quota",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "cloudflare-kv",
@@ -328,7 +580,43 @@
       "availability": "recorded",
       "availabilityLabel": "已有运行记录",
       "consoleUrl": "https://dash.cloudflare.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "storage",
+          "label": "存储容量",
+          "kind": "storage",
+          "mode": "capacity",
+          "displayValue": "1 GB",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 1,
+          "unit": "GB"
+        },
+        {
+          "key": "reads",
+          "label": "读取额度",
+          "kind": "requests",
+          "mode": "capacity",
+          "displayValue": "100,000 次 / 日",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 100000,
+          "unit": "requests"
+        },
+        {
+          "key": "writes",
+          "label": "写入额度",
+          "kind": "requests",
+          "mode": "capacity",
+          "displayValue": "1,000 次 / 日",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 1000,
+          "unit": "requests"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "cloudflare-r2-webdav",
@@ -365,7 +653,43 @@
       "availability": "recorded",
       "availabilityLabel": "已有运行记录",
       "consoleUrl": "https://dash.cloudflare.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "storage",
+          "label": "包含存储量",
+          "kind": "storage",
+          "mode": "capacity",
+          "displayValue": "10 GB-month",
+          "basis": "plan-limit",
+          "note": "按月累计的包含存储量；超额可能计费，实际用量未观测。",
+          "value": 10,
+          "unit": "GB-month"
+        },
+        {
+          "key": "class_a",
+          "label": "Class A 请求",
+          "kind": "requests",
+          "mode": "capacity",
+          "displayValue": "100 万次 / 月",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 1000000,
+          "unit": "requests"
+        },
+        {
+          "key": "class_b",
+          "label": "Class B 请求",
+          "kind": "requests",
+          "mode": "capacity",
+          "displayValue": "1,000 万次 / 月",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 10000000,
+          "unit": "requests"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "cloudflare-browser-run",
@@ -398,7 +722,32 @@
       "availability": "recorded",
       "availabilityLabel": "已有运行记录",
       "consoleUrl": "https://dash.cloudflare.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "browser_minutes",
+          "label": "浏览器时长",
+          "kind": "runtime",
+          "mode": "capacity",
+          "displayValue": "10 分钟 / 日",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 10,
+          "unit": "minutes"
+        },
+        {
+          "key": "concurrency",
+          "label": "并发上限",
+          "kind": "concurrency",
+          "mode": "capacity",
+          "displayValue": "3 个浏览器",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 3,
+          "unit": "browsers"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "browserless-free",
@@ -431,7 +780,30 @@
       "availability": "recorded",
       "availabilityLabel": "已有运行记录",
       "consoleUrl": "https://www.browserless.io/account/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "units",
+          "label": "历史月额度",
+          "kind": "quota",
+          "mode": "capacity",
+          "displayValue": "1,000 units",
+          "basis": "recorded-config",
+          "note": "历史配置记录；实际占用未观测。",
+          "value": 1000,
+          "unit": "units"
+        },
+        {
+          "key": "used_units",
+          "label": "已用额度",
+          "kind": "quota",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "anchor-free",
@@ -464,7 +836,32 @@
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://app.anchorbrowser.io/mcp",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "credits",
+          "label": "历史月额度",
+          "kind": "quota",
+          "mode": "capacity",
+          "displayValue": "5 credits",
+          "basis": "recorded-config",
+          "note": "历史配置记录；实际占用未观测。",
+          "value": 5,
+          "unit": "credits"
+        },
+        {
+          "key": "concurrency",
+          "label": "历史并发上限",
+          "kind": "concurrency",
+          "mode": "capacity",
+          "displayValue": "5 个会话",
+          "basis": "recorded-config",
+          "note": "历史配置记录；实际占用未观测。",
+          "value": 5,
+          "unit": "sessions"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "cloudflare-d1",
@@ -501,7 +898,54 @@
       "availability": "unverified",
       "availabilityLabel": "当前状态待核验",
       "consoleUrl": "https://dash.cloudflare.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "storage",
+          "label": "总存储容量",
+          "kind": "storage",
+          "mode": "capacity",
+          "displayValue": "5 GB",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 5,
+          "unit": "GB"
+        },
+        {
+          "key": "database_storage",
+          "label": "单库容量",
+          "kind": "storage",
+          "mode": "capacity",
+          "displayValue": "500 MB",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 500,
+          "unit": "MB"
+        },
+        {
+          "key": "reads",
+          "label": "读取额度",
+          "kind": "requests",
+          "mode": "capacity",
+          "displayValue": "500 万行 / 日",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 5000000,
+          "unit": "rows"
+        },
+        {
+          "key": "writes",
+          "label": "写入额度",
+          "kind": "requests",
+          "mode": "capacity",
+          "displayValue": "10 万行 / 日",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 100000,
+          "unit": "rows"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "neon-free",
@@ -534,7 +978,32 @@
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://console.neon.tech/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "compute_hours",
+          "label": "计算额度",
+          "kind": "runtime",
+          "mode": "capacity",
+          "displayValue": "100 CU-hours / 月",
+          "basis": "plan-limit",
+          "note": "公开方案按项目每月计量；账户实际用量未观测。",
+          "value": 100,
+          "unit": "CU-hours"
+        },
+        {
+          "key": "storage",
+          "label": "项目存储",
+          "kind": "storage",
+          "mode": "capacity",
+          "displayValue": "1 GB / 项目",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 1,
+          "unit": "GB"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "railway-anonymous-vm",
@@ -565,7 +1034,50 @@
       "evidenceType": "runtime",
       "evidenceLabel": "历史运行记录",
       "availability": "historical",
-      "availabilityLabel": "历史临时使用"
+      "availabilityLabel": "历史临时使用",
+      "metrics": [
+        {
+          "key": "cpu",
+          "label": "CPU",
+          "kind": "cpu",
+          "mode": "capacity",
+          "displayValue": "2 vCPU",
+          "basis": "recorded-config",
+          "note": "历史配置记录；实际占用未观测。",
+          "value": 2,
+          "unit": "vCPU"
+        },
+        {
+          "key": "memory",
+          "label": "内存",
+          "kind": "memory",
+          "mode": "capacity",
+          "displayValue": "2 GB",
+          "basis": "recorded-config",
+          "note": "历史配置记录；实际占用未观测。",
+          "value": 2,
+          "unit": "GB"
+        },
+        {
+          "key": "storage",
+          "label": "存储",
+          "kind": "storage",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        },
+        {
+          "key": "gpu",
+          "label": "GPU",
+          "kind": "gpu",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "backblaze-b2-free",
@@ -598,7 +1110,30 @@
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://secure.backblaze.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "storage",
+          "label": "免费存储容量",
+          "kind": "storage",
+          "mode": "capacity",
+          "displayValue": "前 10 GB",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 10,
+          "unit": "GB"
+        },
+        {
+          "key": "egress",
+          "label": "出站额度规则",
+          "kind": "network",
+          "mode": "capacity",
+          "displayValue": "月均存储量 × 3",
+          "basis": "plan-limit",
+          "note": "公开出站规则；实际可用流量需结合当月存储量核实。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "browserbase-free",
@@ -631,7 +1166,52 @@
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://www.browserbase.com/overview",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "browser_minutes",
+          "label": "浏览器时长",
+          "kind": "runtime",
+          "mode": "capacity",
+          "displayValue": "60 分钟 / 月",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 60,
+          "unit": "minutes"
+        },
+        {
+          "key": "fetch_requests",
+          "label": "Fetch 额度",
+          "kind": "requests",
+          "mode": "capacity",
+          "displayValue": "1,000 次 / 月",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 1000,
+          "unit": "requests"
+        },
+        {
+          "key": "concurrency",
+          "label": "并发上限",
+          "kind": "concurrency",
+          "mode": "capacity",
+          "displayValue": "3 个会话",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 3,
+          "unit": "sessions"
+        },
+        {
+          "key": "proxy_bytes",
+          "label": "代理流量",
+          "kind": "network",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "instabox-free",
@@ -668,7 +1248,52 @@
       "availability": "unverified",
       "availabilityLabel": "当前状态待核验",
       "consoleUrl": "https://dashboard.instabox.sh",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "cpu",
+          "label": "CPU",
+          "kind": "cpu",
+          "mode": "capacity",
+          "displayValue": "4 vCPU",
+          "basis": "recorded-config",
+          "note": "历史配置记录；实际占用未观测。",
+          "value": 4,
+          "unit": "vCPU"
+        },
+        {
+          "key": "memory",
+          "label": "内存",
+          "kind": "memory",
+          "mode": "capacity",
+          "displayValue": "8 GiB",
+          "basis": "recorded-config",
+          "note": "历史配置记录；实际占用未观测。",
+          "value": 8,
+          "unit": "GiB"
+        },
+        {
+          "key": "storage",
+          "label": "存储",
+          "kind": "storage",
+          "mode": "capacity",
+          "displayValue": "20 GiB",
+          "basis": "recorded-config",
+          "note": "历史配置记录；实际占用未观测。",
+          "value": 20,
+          "unit": "GiB"
+        },
+        {
+          "key": "gpu",
+          "label": "GPU",
+          "kind": "gpu",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "northflank-sandbox",
@@ -701,7 +1326,43 @@
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://app.northflank.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "services",
+          "label": "服务配额",
+          "kind": "quota",
+          "mode": "capacity",
+          "displayValue": "2 个 services",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 2,
+          "unit": "services"
+        },
+        {
+          "key": "jobs",
+          "label": "任务配额",
+          "kind": "quota",
+          "mode": "capacity",
+          "displayValue": "2 个 jobs",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 2,
+          "unit": "jobs"
+        },
+        {
+          "key": "databases",
+          "label": "数据库配额",
+          "kind": "storage",
+          "mode": "capacity",
+          "displayValue": "1 个 database",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 1,
+          "unit": "databases"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "zenrows-free",
@@ -734,7 +1395,30 @@
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://app.zenrows.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "plan_credits",
+          "label": "公开月额度",
+          "kind": "quota",
+          "mode": "capacity",
+          "displayValue": "5,000 credits",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 5000,
+          "unit": "credits"
+        },
+        {
+          "key": "key_usage",
+          "label": "API Key 用量",
+          "kind": "quota",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "apify-free",
@@ -767,7 +1451,30 @@
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://console.apify.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "plan_credits",
+          "label": "公开月额度",
+          "kind": "quota",
+          "mode": "capacity",
+          "displayValue": "$5",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 5,
+          "unit": "USD"
+        },
+        {
+          "key": "monthly_usage_usd",
+          "label": "账户消费",
+          "kind": "quota",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "firecrawl-free",
@@ -801,10 +1508,38 @@
       "availabilityLabel": "已有运行记录",
       "consoleUrl": "https://www.firecrawl.dev/app",
       "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "credits",
+          "label": "采集额度",
+          "kind": "quota",
+          "mode": "balance",
+          "displayValue": "1,025 credits",
+          "unit": "credits",
+          "limit": 1000,
+          "remaining": 1025,
+          "basis": "observed",
+          "checkedAt": "2026-11-22T21:53:21Z",
+          "note": "账期额度与余额来自账户快照。 余额高于账期额度；额外额度来源未核实，已用量未推算。"
+        },
+        {
+          "key": "plan_credits",
+          "label": "账期额度",
+          "kind": "quota",
+          "mode": "capacity",
+          "displayValue": "1,000 credits",
+          "basis": "observed",
+          "note": "同次账户快照中的账期额度；与余额分开显示。",
+          "value": 1000,
+          "unit": "credits",
+          "checkedAt": "2026-11-22T21:53:21Z"
+        }
+      ],
+      "usageStatus": "observed",
       "quota": {
         "label": "已记录余额",
         "value": "1,025 credits",
-        "checkedAt": "2026-11-22T17:52:03Z",
+        "checkedAt": "2026-11-22T21:53:21Z",
         "note": "历史快照，非当前余额。余额高于账期额度，额外额度来源未核实。"
       }
     },
@@ -839,7 +1574,39 @@
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://dashboard.render.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "instance_hours",
+          "label": "实例时长",
+          "kind": "runtime",
+          "mode": "capacity",
+          "displayValue": "750 小时 / 月",
+          "basis": "plan-limit",
+          "note": "公开方案按工作区共享计量；实际用量未观测。",
+          "value": 750,
+          "unit": "instance-hours"
+        },
+        {
+          "key": "cpu",
+          "label": "CPU",
+          "kind": "cpu",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        },
+        {
+          "key": "memory",
+          "label": "内存",
+          "kind": "memory",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "cloudflare-workers-ai",
@@ -872,7 +1639,30 @@
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://dash.cloudflare.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "neurons",
+          "label": "推理额度",
+          "kind": "quota",
+          "mode": "capacity",
+          "displayValue": "10,000 Neurons / 日",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 10000,
+          "unit": "Neurons"
+        },
+        {
+          "key": "used_neurons",
+          "label": "已用额度",
+          "kind": "quota",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "upstash-redis-free",
@@ -905,7 +1695,43 @@
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://console.upstash.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "storage",
+          "label": "存储容量",
+          "kind": "storage",
+          "mode": "capacity",
+          "displayValue": "250 MB",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 250,
+          "unit": "MB"
+        },
+        {
+          "key": "commands",
+          "label": "命令额度",
+          "kind": "requests",
+          "mode": "capacity",
+          "displayValue": "50 万次 / 月",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 500000,
+          "unit": "commands"
+        },
+        {
+          "key": "bandwidth",
+          "label": "带宽额度",
+          "kind": "network",
+          "mode": "capacity",
+          "displayValue": "10 GB / 月",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 10,
+          "unit": "GB"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "groq-free",
@@ -938,7 +1764,28 @@
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://console.groq.com/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "requests",
+          "label": "请求额度",
+          "kind": "requests",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        },
+        {
+          "key": "tokens",
+          "label": "Token 额度",
+          "kind": "quota",
+          "mode": "unknown",
+          "displayValue": "未观测",
+          "basis": "unknown",
+          "note": "暂无可核实的用量读数。"
+        }
+      ],
+      "usageStatus": "unknown"
     },
     {
       "id": "turso-free",
@@ -975,7 +1822,54 @@
       "availability": "awaiting-setup",
       "availabilityLabel": "待接入验收",
       "consoleUrl": "https://app.turso.tech/",
-      "consoleLabel": "打开控制台"
+      "consoleLabel": "打开控制台",
+      "metrics": [
+        {
+          "key": "databases",
+          "label": "数据库配额",
+          "kind": "storage",
+          "mode": "capacity",
+          "displayValue": "100 个",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 100,
+          "unit": "databases"
+        },
+        {
+          "key": "storage",
+          "label": "总存储容量",
+          "kind": "storage",
+          "mode": "capacity",
+          "displayValue": "5 GB",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 5,
+          "unit": "GB"
+        },
+        {
+          "key": "reads",
+          "label": "读取额度",
+          "kind": "requests",
+          "mode": "capacity",
+          "displayValue": "5 亿行 / 月",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 500000000,
+          "unit": "rows"
+        },
+        {
+          "key": "writes",
+          "label": "写入额度",
+          "kind": "requests",
+          "mode": "capacity",
+          "displayValue": "1,000 万行 / 月",
+          "basis": "plan-limit",
+          "note": "方案额度记录；账户实际用量未观测。",
+          "value": 10000000,
+          "unit": "rows"
+        }
+      ],
+      "usageStatus": "unknown"
     }
   ]
 }
